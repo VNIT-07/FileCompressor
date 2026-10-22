@@ -1137,11 +1137,11 @@ input[type="checkbox"]:checked + .switch-ui .switch-thumb {
 
 .switch-card {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  padding: 15px 18px;
+  padding: 16px 18px;
   background-color: var(--bg-window);
-  border: 1px solid var(--border-subtle);
+  border: 1.5px solid var(--border-subtle);
   border-radius: 10px;
   cursor: pointer;
   gap: 16px;
@@ -1150,6 +1150,12 @@ input[type="checkbox"]:checked + .switch-ui .switch-thumb {
 
 .switch-card:hover {
   border-color: var(--border-hover);
+  background-color: var(--bg-window);
+}
+
+.switch-card:has(input[type="checkbox"]:checked) {
+  border-color: var(--primary);
+  background-color: var(--bg-selected);
 }
 
 .switch-card-text {
@@ -1182,7 +1188,42 @@ input[type="checkbox"]:checked + .switch-ui .switch-thumb {
 
 .switch-toggle-slot {
   flex-shrink: 0;
-  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Perfect right dot indicator with green tick */
+.switch-card .switch-ui {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-card);
+  background-color: var(--bg-subtle);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.switch-card .switch-thumb {
+  display: none !important;
+}
+
+.switch-card:hover .switch-ui {
+  border-color: var(--primary);
+}
+
+.switch-card input[type="checkbox"]:checked + .switch-ui {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='3.5 8.5 6.5 11.5 12.5 5.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 13px 13px;
+  box-shadow: 0 1px 3px rgba(47, 42, 34, 0.12);
 }
 
 /* ========================================================== */
