@@ -80,8 +80,68 @@ class handler(BaseHTTPRequestHandler):
             pass
         return {}
 
+    def serve_static_file(self, rel_path: str):
+        rel_path = rel_path.lstrip("/\\")
+        candidate_dirs = [
+            os.path.join(BASE_DIR, "public"),
+            os.path.join(BASE_DIR, "static"),
+            BASE_DIR,
+        ]
+
+        target_file = None
+        for cdir in candidate_dirs:
+            p1 = os.path.normpath(os.path.join(cdir, rel_path))
+            if os.path.isfile(p1):
+                target_file = p1
+                break
+            if rel_path.startswith("static/") or rel_path.startswith("static\\"):
+                sub_rel = rel_path[len("static/"):]
+                p2 = os.path.normpath(os.path.join(cdir, sub_rel))
+                if os.path.isfile(p2):
+                    target_file = p2
+                    break
+
+        if not target_file or not os.path.isfile(target_file):
+            self.send_error(404, f"Endpoint not found: /{rel_path}")
+            return
+
+        mime, _ = mimetypes.guess_type(target_file)
+        if target_file.endswith(".html"):
+            mime = "text/html; charset=utf-8"
+        elif target_file.endswith(".css"):
+            mime = "text/css; charset=utf-8"
+        elif target_file.endswith(".js"):
+            mime = "application/javascript; charset=utf-8"
+        elif target_file.endswith(".svg"):
+            mime = "image/svg+xml"
+
+        try:
+            with open(target_file, "rb") as f:
+                content = f.read()
+            self.send_response(200)
+            self.send_header("Content-Type", mime or "application/octet-stream")
+            self.send_header("Content-Length", str(len(content)))
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(content)
+        except Exception as e:
+            self.send_error(500, f"Error reading file: {e}")
+
     def do_GET(self):
         path, query = self.get_route_path()
+
+        # Fallback static asset handling (if requests hit Python lambda)
+        if path in ["/", "/index.html", "/static/index.html"]:
+            self.serve_static_file("index.html")
+            return
+
+        if path in ["/favicon.ico", "/favicon.svg", "/favicon.png"]:
+            self.serve_static_file(path.lstrip("/"))
+            return
+
+        if path.startswith("/static/"):
+            self.serve_static_file(path)
+            return
 
         if path == "/api/info":
             self.send_json({
