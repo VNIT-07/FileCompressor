@@ -90,20 +90,25 @@ class CompressorRequestHandler(BaseHTTPRequestHandler):
         # API Endpoints
         if path == "/api/info":
             home = os.path.expanduser("~")
+            formats = [
+                {"id": "zip", "name": "ZIP (.zip)", "desc": "Universal compatibility across all OS"},
+                {"id": "tar.gz", "name": "Tar Gzip (.tar.gz)", "desc": "Standard Linux/macOS compressed tarball"},
+                {"id": "tar.bz2", "name": "Tar Bzip2 (.tar.bz2)", "desc": "Higher compression ratio for text & code"},
+                {"id": "tar.xz", "name": "Tar XZ (.tar.xz)", "desc": "Maximum compression for large files"},
+            ]
+            if sys.platform == "darwin":
+                formats.append({"id": "dmg", "name": "Apple Disk Image (.dmg)", "desc": "macOS read-only compressed UDZO image"})
+
             self.send_json({
                 "platform": sys.platform,
+                "cloud_mode": False,
                 "home_dir": home,
                 "desktop_dir": os.path.join(home, "Desktop"),
                 "downloads_dir": os.path.join(home, "Downloads"),
                 "documents_dir": os.path.join(home, "Documents"),
                 "current_dir": os.getcwd(),
-                "supported_formats": [
-                    {"id": "zip", "name": "ZIP (.zip)", "desc": "Universal compatibility across all OS"},
-                    {"id": "tar.gz", "name": "Tar Gzip (.tar.gz)", "desc": "Standard Linux/macOS compressed tarball"},
-                    {"id": "tar.bz2", "name": "Tar Bzip2 (.tar.bz2)", "desc": "Higher compression ratio for text & code"},
-                    {"id": "tar.xz", "name": "Tar XZ (.tar.xz)", "desc": "Maximum compression for large files"},
-                    {"id": "dmg", "name": "Apple Disk Image (.dmg)", "desc": "macOS read-only compressed UDZO image"},
-                ]
+                "max_upload_size_mb": 500,
+                "supported_formats": formats,
             })
             return
 
@@ -184,7 +189,7 @@ class CompressorRequestHandler(BaseHTTPRequestHandler):
             browse_type = data.get("type", "folder")  # 'file', 'folder'
             prompt = data.get("prompt", "Select item")
 
-            chosen_path = self.run_macos_picker(browse_type, prompt)
+            chosen_path = self.run_native_picker(browse_type, prompt)
             if chosen_path:
                 size_bytes = get_path_size(chosen_path)
                 self.send_json({
@@ -302,10 +307,14 @@ class CompressorRequestHandler(BaseHTTPRequestHandler):
                 })
             base_clean = os.path.basename(strip_known_extension(target_path))
             ext = get_default_extension(fmt)
+            if sys.platform == "win32":
+                join_cmd = f'copy /b "{base_clean}_part"*{ext} "{base_clean}{ext}"'
+            else:
+                join_cmd = f'cat "{base_clean}_part"*{ext} > "{base_clean}{ext}"'
             self.send_json({
                 "success": True,
                 "parts": parts_info,
-                "join_command": f'cat "{base_clean}_part"*{ext} > "{base_clean}{ext}"',
+                "join_command": join_cmd,
             })
             return
 
@@ -320,9 +329,16 @@ class CompressorRequestHandler(BaseHTTPRequestHandler):
                 if sys.platform == "darwin":
                     # Reveal file in Finder
                     subprocess.run(["open", "-R", target_path], check=True)
+                elif sys.platform == "win32":
+                    # Reveal file in Windows Explorer
+                    norm_path = os.path.normpath(target_path)
+                    if os.path.isfile(norm_path):
+                        subprocess.run(["explorer.exe", f"/select,{norm_path}"], check=False)
+                    else:
+                        subprocess.run(["explorer.exe", norm_path], check=False)
                 else:
                     folder = target_path if os.path.isdir(target_path) else os.path.dirname(target_path)
-                    subprocess.run(["open", folder], check=True)
+                    subprocess.run(["xdg-open", folder], check=True)
                 self.send_json({"success": True})
             except Exception as e:
                 self.send_error_json(f"Failed to open in file manager: {e}", 500)
@@ -399,22 +415,96 @@ class CompressorRequestHandler(BaseHTTPRequestHandler):
             pass
         return {}
 
-    def run_macos_picker(self, picker_type: str, prompt: str) -> str:
-        """Invoke native macOS AppleScript file/folder chooser."""
-        if sys.platform != "darwin":
+    def run_native_picker(self, picker_type: str, prompt: str) -> str:
+        """Invoke native OS file/folder chooser across Windows, macOS, and Linux."""
+        # 1. macOS native AppleScript chooser
+        if sys.platform == "darwin":
+            if picker_type == "file":
+                script = f'POSIX path of (choose file with prompt "{prompt}")'
+            else:
+                script = f'POSIX path of (choose folder with prompt "{prompt}")'
+            try:
+                res = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
+                if res.returncode == 0 and res.stdout.strip():
+                    return res.stdout.strip().rstrip(os.sep)
+            except Exception:
+                pass
             return ""
 
-        if picker_type == "file":
-            script = f'POSIX path of (choose file with prompt "{prompt}")'
-        else:
-            script = f'POSIX path of (choose folder with prompt "{prompt}")'
+        # 2. Windows native dialogs
+        if sys.platform == "win32":
+            # Attempt A: Python built-in Tkinter dialog
+            try:
+                import tkinter as tk
+                from tkinter import filedialog
+                root = tk.Tk()
+                root.withdraw()
+                root.attributes("-topmost", True)
+                if picker_type == "file":
+                    chosen = filedialog.askopenfilename(title=prompt)
+                else:
+                    chosen = filedialog.askdirectory(title=prompt)
+                root.destroy()
+                if chosen:
+                    return os.path.normpath(chosen)
+            except Exception:
+                pass
 
+            # Attempt B: Native PowerShell Windows Forms dialog
+            try:
+                if picker_type == "file":
+                    ps_cmd = (
+                        "Add-Type -AssemblyName System.Windows.Forms; "
+                        "$d = New-Object System.Windows.Forms.OpenFileDialog; "
+                        f"$d.Title = '{prompt}'; "
+                        "if ($d.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Output $d.FileName }"
+                    )
+                else:
+                    ps_cmd = (
+                        "Add-Type -AssemblyName System.Windows.Forms; "
+                        "$d = New-Object System.Windows.Forms.FolderBrowserDialog; "
+                        f"$d.Description = '{prompt}'; "
+                        "if ($d.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Output $d.SelectedPath }"
+                    )
+                no_win_flag = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+                res = subprocess.run(
+                    ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps_cmd],
+                    capture_output=True,
+                    text=True,
+                    creationflags=no_win_flag,
+                )
+                if res.returncode == 0 and res.stdout.strip():
+                    return os.path.normpath(res.stdout.strip())
+            except Exception:
+                pass
+            return ""
+
+        # 3. Linux / Unix (Tkinter or Zenity)
         try:
-            res = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
-            if res.returncode == 0:
-                return res.stdout.strip().rstrip(os.sep)
+            import tkinter as tk
+            from tkinter import filedialog
+            root = tk.Tk()
+            root.withdraw()
+            if picker_type == "file":
+                chosen = filedialog.askopenfilename(title=prompt)
+            else:
+                chosen = filedialog.askdirectory(title=prompt)
+            root.destroy()
+            if chosen:
+                return os.path.normpath(chosen)
         except Exception:
             pass
+
+        if shutil.which("zenity"):
+            try:
+                flag = "--file-selection" if picker_type == "file" else "--file-selection --directory"
+                cmd = f'zenity {flag} --title="{prompt}"'
+                res = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+                if res.returncode == 0 and res.stdout.strip():
+                    return res.stdout.strip()
+            except Exception:
+                pass
+
         return ""
 
     def handle_upload_compress(self):
@@ -526,6 +616,11 @@ class CompressorRequestHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         # Clean logging
         sys.stderr.write(f"[{self.log_date_time_string()}] {format % args}\n")
+
+
+# Vercel Serverless Function entrypoint export
+handler = CompressorRequestHandler
+app = CompressorRequestHandler
 
 
 def run_server(port: int = 8080, open_browser: bool = True):

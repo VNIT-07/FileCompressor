@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/static/(.*)",
+      "destination": "/static/$1"
+    },
+    {
+      "source": "/favicon.ico",
+      "destination": "/static/favicon.ico"
+    },
+    {
+      "source": "/favicon.svg",
+      "destination": "/static/favicon.svg"
+    },
+    {
+      "source": "/favicon.png",
+      "destination": "/static/favicon.png"
+    },
+    {
+      "source": "/",
+      "destination": "/static/index.html"
+    },
+    {
+      "source": "/index.html",
+      "destination": "/static/index.html"
+    }
+  ]
+}

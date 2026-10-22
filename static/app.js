@@ -130,11 +130,105 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch('/api/info');
       if (res.ok) {
         state.systemInfo = await res.json();
+        setupPlatformUI();
         setupShortcuts();
+        checkCloudMode();
       }
       fetchHistory();
     } catch (err) {
       console.error('Initialization error:', err);
+    }
+  }
+
+  function setupPlatformUI() {
+    if (!state.systemInfo) return;
+    const platform = state.systemInfo.platform || '';
+    const isWindows = platform === 'win32' || navigator.userAgent.includes('Windows');
+    const isMac = platform === 'darwin' || navigator.userAgent.includes('Macintosh');
+
+    state.isWindows = isWindows;
+    state.isMac = isMac;
+
+    // Update Platform Badge if not cloud
+    if (!state.isCloud) {
+      const platformBadge = document.getElementById('platform-badge');
+      if (platformBadge) {
+        if (isWindows) {
+          platformBadge.innerHTML = '<span class="status-indicator"></span> Windows Native Engine Active';
+        } else if (isMac) {
+          platformBadge.innerHTML = '<span class="status-indicator"></span> macOS Native Engine Active';
+        } else {
+          platformBadge.innerHTML = '<span class="status-indicator"></span> Linux Native Engine Active';
+        }
+      }
+    }
+
+    // Update Tab 1 Label
+    const tabLocalLabel = document.getElementById('tab-local-label');
+    if (tabLocalLabel) {
+      if (isWindows) tabLocalLabel.textContent = 'Windows Filesystem';
+      else if (isMac) tabLocalLabel.textContent = 'Mac Filesystem';
+      else tabLocalLabel.textContent = 'Local Filesystem';
+    }
+
+    // Update Keyboard Shortcuts: Ctrl for Windows/Linux, ⌘ for Mac
+    const modKey = isMac ? '⌘' : 'Ctrl+';
+    const kbd1 = document.getElementById('tab-kbd-1');
+    const kbd2 = document.getElementById('tab-kbd-2');
+    const kbd3 = document.getElementById('tab-kbd-3');
+    const kbd4 = document.getElementById('tab-kbd-4');
+    const kbdHelp = document.getElementById('statusbar-kbd-help');
+
+    if (kbd1) kbd1.textContent = `${modKey}1`;
+    if (kbd2) kbd2.textContent = `${modKey}2`;
+    if (kbd3) kbd3.textContent = `${modKey}3`;
+    if (kbd4) kbd4.textContent = `${modKey}4`;
+    if (kbdHelp) kbdHelp.textContent = `${modKey}1–${modKey}4 Switch Views`;
+
+    // Update Reveal button
+    const revealLabel = document.getElementById('btn-reveal-label');
+    if (revealLabel) {
+      if (isWindows) revealLabel.textContent = 'Show in Explorer';
+      else if (isMac) revealLabel.textContent = 'Show in Finder';
+      else revealLabel.textContent = 'Show in File Manager';
+    }
+
+    const vrevealLabel = document.getElementById('vbtn-reveal-label');
+    if (vrevealLabel) {
+      if (isWindows) vrevealLabel.textContent = 'Show in Explorer';
+      else if (isMac) vrevealLabel.textContent = 'Show in Finder';
+      else vrevealLabel.textContent = 'Show in File Manager';
+    }
+  }
+
+  function checkCloudMode() {
+    const isCloud = !!(
+      (state.systemInfo && state.systemInfo.cloud_mode) ||
+      window.location.hostname.includes('vercel.app') ||
+      window.location.hostname.includes('now.sh')
+    );
+    state.isCloud = isCloud;
+
+    if (isCloud) {
+      const platformBadge = document.getElementById('platform-badge');
+      if (platformBadge) {
+        platformBadge.innerHTML = '<span class="status-indicator cloud-pulse"></span> Vercel Cloud Edition Active';
+      }
+
+      const cloudBanner = document.getElementById('cloud-mode-banner');
+      if (cloudBanner) {
+        cloudBanner.style.display = 'flex';
+      }
+
+      const btnSwitch = document.getElementById('btn-switch-to-upload');
+      if (btnSwitch) {
+        btnSwitch.addEventListener('click', () => {
+          switchTab('tab-upload');
+        });
+      }
+
+      // Automatically default to Drag & Drop in cloud mode
+      switchTab('tab-upload');
     }
   }
 
@@ -155,30 +249,27 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 3. Tab Switching
+  function switchTab(targetId) {
+    tabBtns.forEach(b => {
+      const match = b.getAttribute('data-tab') === targetId;
+      b.classList.toggle('active', match);
+      b.setAttribute('aria-selected', match ? 'true' : 'false');
+    });
+    tabContents.forEach(c => {
+      const match = c.id === targetId;
+      c.classList.toggle('active', match);
+      c.style.display = match ? 'block' : 'none';
+    });
+
+    if (targetId === 'tab-history') {
+      fetchHistory();
+    }
+  }
+
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const targetId = btn.getAttribute('data-tab');
-
-      tabBtns.forEach(b => {
-        b.classList.remove('active');
-        b.setAttribute('aria-selected', 'false');
-      });
-      tabContents.forEach(c => {
-        c.classList.remove('active');
-        c.style.display = 'none';
-      });
-
-      btn.classList.add('active');
-      btn.setAttribute('aria-selected', 'true');
-      const targetContent = document.getElementById(targetId);
-      if (targetContent) {
-        targetContent.classList.add('active');
-        targetContent.style.display = 'block';
-      }
-
-      if (targetId === 'tab-history') {
-        fetchHistory();
-      }
+      switchTab(targetId);
     });
   });
 
@@ -626,7 +717,73 @@ document.addEventListener('DOMContentLoaded', () => {
     uploadStatusText.textContent = `Ready to compress ${state.stagedFiles.length} files`;
   }
 
-  // Upload & Compress Submission
+  // Client-Side High-Performance In-Browser ZIP Compression
+  async function compressStagedFilesClientSide(btnText, spinner) {
+    const totalBytes = state.stagedFiles.reduce((acc, f) => acc + f.size, 0);
+    const startTime = performance.now();
+    uploadStatusText.textContent = 'Initializing in-browser compression engine...';
+
+    if (!window.JSZip) {
+      throw new Error('Browser ZIP library not loaded. Please ensure an active internet connection.');
+    }
+
+    const zip = new JSZip();
+    let baseName = 'compressed_files';
+    if (state.stagedFiles.length === 1) {
+      const fn = state.stagedFiles[0].name;
+      baseName = fn.substring(0, fn.lastIndexOf('.')) || fn;
+    }
+
+    // Add files preserving relative directories if folder was uploaded
+    for (const file of state.stagedFiles) {
+      const relPath = file.webkitRelativePath || file.name;
+      zip.file(relPath, file);
+    }
+
+    const blob = await zip.generateAsync(
+      {
+        type: 'blob',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 9 },
+      },
+      (metadata) => {
+        const pct = Math.round(metadata.percent);
+        uploadStatusText.textContent = `Compressing files in browser... ${pct}%`;
+        btnText.textContent = `${pct}% Compressing...`;
+      }
+    );
+
+    const filename = `${baseName}.zip`;
+    const downloadUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(downloadUrl);
+
+    const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+    const savedBytes = Math.max(0, totalBytes - blob.size);
+    const savedPct = totalBytes > 0 ? Math.round((savedBytes / totalBytes) * 100) : 0;
+
+    showToast(`Downloaded: ${filename} (Saved ${savedPct}%)`);
+    uploadStatusText.textContent = `Completed in ${elapsed}s! ${filename} (${formatBytes(blob.size)}) downloaded.`;
+
+    // Record in local session history
+    const historyItem = {
+      filename: filename,
+      output: filename,
+      compressed_size_formatted: formatBytes(blob.size),
+      saved_percentage: savedPct,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    state.history.unshift(historyItem);
+    if (state.history.length > 50) state.history.pop();
+    renderHistory();
+  }
+
+  // Upload & Compress Submission (Hybrid Client-Side + Serverless)
   btnCompressUpload.addEventListener('click', async () => {
     if (state.stagedFiles.length === 0) return;
 
@@ -636,15 +793,28 @@ document.addEventListener('DOMContentLoaded', () => {
     btnCompressUpload.disabled = true;
     btnText.textContent = 'Compressing...';
     spinner.style.display = 'inline-block';
-    uploadStatusText.textContent = 'Uploading & compressing files...';
 
-    const formData = new FormData();
-    formData.append('format', state.uploadFormat);
-    state.stagedFiles.forEach(f => {
-      formData.append('files', f);
-    });
+    const totalBytes = state.stagedFiles.reduce((acc, f) => acc + f.size, 0);
+    const isZip = state.uploadFormat === 'zip';
+    const exceedsCloudPayload = totalBytes > 4.2 * 1024 * 1024; // 4.2 MB
 
     try {
+      // If ZIP format or exceeds serverless payload, use high-speed client-side compression
+      if (window.JSZip && (isZip || exceedsCloudPayload)) {
+        if (!isZip && exceedsCloudPayload) {
+          showToast('Files exceed 4.5MB serverless limit. Compressing as ZIP in browser!');
+        }
+        await compressStagedFilesClientSide(btnText, spinner);
+        return;
+      }
+
+      uploadStatusText.textContent = 'Uploading & compressing files on server...';
+      const formData = new FormData();
+      formData.append('format', state.uploadFormat);
+      state.stagedFiles.forEach(f => {
+        formData.append('files', f);
+      });
+
       const res = await fetch('/api/upload-compress', {
         method: 'POST',
         body: formData,
@@ -721,6 +891,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.history.forEach(item => {
       const el = document.createElement('div');
       el.className = 'history-item';
+      const revealName = state.isWindows ? 'Explorer' : (state.isMac ? 'Finder' : 'Files');
       el.innerHTML = `
         <div class="history-meta">
           <span class="history-filename">${escapeHtml(item.filename)}</span>
@@ -733,8 +904,8 @@ document.addEventListener('DOMContentLoaded', () => {
           </span>
         </div>
         <div class="history-actions">
-          <button type="button" class="btn btn-secondary btn-sm btn-hist-finder" data-path="${escapeHtml(item.output)}" title="Reveal in Finder">
-            Finder
+          <button type="button" class="btn btn-secondary btn-sm btn-hist-finder" data-path="${escapeHtml(item.output)}" title="Reveal in ${revealName}">
+            ${revealName}
           </button>
           <a href="/api/download?path=${encodeURIComponent(item.output)}" class="btn btn-secondary btn-sm" title="Download">
             Download
@@ -751,7 +922,7 @@ document.addEventListener('DOMContentLoaded', () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ path }),
           });
-          showToast('Revealed in Finder');
+          showToast(`Revealed in ${revealName}`);
         } catch (err) {
           showToast('Failed to reveal');
         }

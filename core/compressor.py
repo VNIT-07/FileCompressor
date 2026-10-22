@@ -21,6 +21,12 @@ import time
 import zipfile
 from typing import Dict, Any, Optional, List, Tuple
 
+try:
+    from PIL import Image
+    HAS_PIL = True
+except ImportError:
+    HAS_PIL = False
+
 
 def get_path_size(path: str) -> int:
     """Calculate total size of a file or directory in bytes."""
@@ -148,8 +154,9 @@ def split_file(file_path: str, max_chunk_bytes: int, fmt: str = "zip") -> List[s
 
 def optimize_tree_images(source_dir: str, max_dim: int = 1920, quality: int = 70) -> str:
     """
-    Creates an optimized temporary copy of source_dir where images (JPG, PNG, HEIC)
-    are resampled and compressed using macOS native sips to drastically shrink size.
+    Creates an optimized temporary copy of source_dir where images (JPG, PNG, WebP)
+    are resampled and compressed to drastically shrink size.
+    Uses PIL/Pillow if available, or macOS native sips as fallback.
     Returns path to temporary directory.
     """
     temp_dir = tempfile.mkdtemp(prefix="opt_media_")
@@ -162,14 +169,99 @@ def optimize_tree_images(source_dir: str, max_dim: int = 1920, quality: int = 70
             src_file = os.path.join(root, f)
             dest_file = os.path.join(dest_root, f)
             _, ext = os.path.splitext(f.lower())
-            if ext in img_exts and sys.platform == "darwin":
-                cmd = ["sips", "-s", "formatOptions", str(quality), "--resampleHeightWidthMax", str(max_dim), src_file, "--out", dest_file]
-                res = subprocess.run(cmd, capture_output=True)
-                if res.returncode != 0 or not os.path.exists(dest_file):
-                    shutil.copy2(src_file, dest_file)
-            else:
+
+            optimized = False
+            if ext in img_exts:
+                if HAS_PIL and ext in {".jpg", ".jpeg", ".png", ".webp"}:
+                    try:
+                        with Image.open(src_file) as img:
+                            img.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
+                            save_format = "JPEG" if ext in {".jpg", ".jpeg"} else ("PNG" if ext == ".png" else "WEBP")
+                            if save_format == "JPEG" and img.mode in ("RGBA", "P"):
+                                img = img.convert("RGB")
+                            img.save(dest_file, format=save_format, quality=quality, optimize=True)
+                            optimized = True
+                    except Exception:
+                        optimized = False
+
+                if not optimized and sys.platform == "darwin":
+                    cmd = ["sips", "-s", "formatOptions", str(quality), "--resampleHeightWidthMax", str(max_dim), src_file, "--out", dest_file]
+                    res = subprocess.run(cmd, capture_output=True)
+                    if res.returncode == 0 and os.path.exists(dest_file):
+                        optimized = True
+
+            if not optimized:
                 shutil.copy2(src_file, dest_file)
     return temp_dir
+
+
+def compress_zip_builtin(
+    source: str,
+    output_path: str,
+    is_dir: bool,
+    relative: bool,
+    exclude_junk: bool,
+    max_compression: bool,
+) -> None:
+    """Pure Python ZIP creation using standard library zipfile (zero external dependencies)."""
+    compresslevel = 9 if max_compression else 6
+    junk_patterns = {".git", "node_modules", ".DS_Store", "__pycache__", ".venv", "venv", ".cache"}
+
+    if os.path.exists(output_path):
+        os.remove(output_path)
+
+    with zipfile.ZipFile(output_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=compresslevel) as zf:
+        if not is_dir:
+            arcname = os.path.basename(source) if relative else source
+            zf.write(source, arcname=arcname)
+        else:
+            for root, dirs, files in os.walk(source):
+                if exclude_junk:
+                    dirs[:] = [d for d in dirs if d not in junk_patterns and not d.endswith(".pyc")]
+                for f in files:
+                    if exclude_junk and (f in junk_patterns or f.endswith(".pyc") or f == ".DS_Store"):
+                        continue
+                    fp = os.path.join(root, f)
+                    if os.path.islink(fp) or not os.path.exists(fp):
+                        continue
+                    arcname = os.path.relpath(fp, source) if relative else fp
+                    zf.write(fp, arcname=arcname)
+
+
+def compress_tar_builtin(
+    source: str,
+    output_path: str,
+    fmt: str,
+    is_dir: bool,
+    relative: bool,
+    exclude_junk: bool,
+) -> None:
+    """Pure Python TAR creation using standard library tarfile (zero external dependencies)."""
+    mode_map = {"tar.gz": "w:gz", "tar.bz2": "w:bz2", "tar.xz": "w:xz"}
+    mode = mode_map.get(fmt, "w:gz")
+    junk_patterns = {".git", "node_modules", ".DS_Store", "__pycache__", ".venv", "venv", ".cache"}
+
+    if os.path.exists(output_path):
+        os.remove(output_path)
+
+    def tar_filter(tarinfo):
+        if exclude_junk:
+            base = os.path.basename(tarinfo.name)
+            if base in junk_patterns or base.endswith(".pyc"):
+                return None
+        return tarinfo
+
+    with tarfile.open(output_path, mode) as tf:
+        if not is_dir:
+            arcname = os.path.basename(source) if relative else source
+            tf.add(source, arcname=arcname)
+        else:
+            if relative:
+                for item in os.listdir(source):
+                    fp = os.path.join(source, item)
+                    tf.add(fp, arcname=item, filter=tar_filter if exclude_junk else None)
+            else:
+                tf.add(source, arcname=source, filter=tar_filter if exclude_junk else None)
 
 
 def create_standalone_volume_archives(
@@ -354,7 +446,7 @@ def compress(
     temp_opt_dir = None
     working_source = source
 
-    if optimize_media and is_dir and sys.platform == "darwin":
+    if optimize_media and is_dir and (HAS_PIL or sys.platform == "darwin"):
         try:
             temp_opt_dir = optimize_tree_images(source, max_dim=1920, quality=70)
             working_source = temp_opt_dir
@@ -446,53 +538,95 @@ def compress(
     ]
 
     if fmt == "zip":
-        cmd = ["zip"]
-        if max_compression:
-            cmd.append("-9")
-        cmd.append("-q")
-
-        if relative:
-            if is_dir:
-                cmd.extend(["-r", output_path, "."])
-                cwd = working_source
-            else:
-                cmd.extend([output_path, source_name])
-                cwd = source_parent
+        if not shutil.which("zip"):
+            # Native zip CLI not present in PATH (standard on Windows). Use built-in zipfile!
+            try:
+                compress_zip_builtin(
+                    source=working_source,
+                    output_path=output_path,
+                    is_dir=is_dir,
+                    relative=relative,
+                    exclude_junk=exclude_junk,
+                    max_compression=max_compression,
+                )
+                cmd = ["python-builtin-zip", output_path]
+            except Exception as e:
+                return {
+                    "success": False,
+                    "error": f"Built-in ZIP compression failed: {e}",
+                    "source": source,
+                    "output": output_path,
+                    "format": fmt,
+                }
         else:
-            cmd.extend(["-r", output_path, working_source])
+            cmd = ["zip"]
+            if max_compression:
+                cmd.append("-9")
+            cmd.append("-q")
 
-        if exclude_junk and is_dir:
-            cmd.append("-x")
-            for pat in junk_patterns:
-                cmd.append(f"*/{pat}/*")
-                cmd.append(f"*/{pat}")
+            if relative:
+                if is_dir:
+                    cmd.extend(["-r", output_path, "."])
+                    cwd = working_source
+                else:
+                    cmd.extend([output_path, source_name])
+                    cwd = source_parent
+            else:
+                cmd.extend(["-r", output_path, working_source])
+
+            if exclude_junk and is_dir:
+                cmd.append("-x")
+                for pat in junk_patterns:
+                    cmd.append(f"*/{pat}/*")
+                    cmd.append(f"*/{pat}")
 
     elif fmt in ["tar.gz", "tar.bz2", "tar.xz"]:
-        flag_map = {
-            "tar.gz": "-czf",
-            "tar.bz2": "-cjf",
-            "tar.xz": "-cJf",
-        }
-        tar_flag = flag_map[fmt]
-        cmd = ["tar", tar_flag, output_path]
-
-        if exclude_junk and is_dir:
-            for pat in junk_patterns:
-                cmd.append(f"--exclude={pat}")
-
-        if relative:
-            if is_dir:
-                cmd.extend(["-C", working_source, "."])
-            else:
-                cmd.extend(["-C", source_parent, source_name])
+        if not shutil.which("tar"):
+            # Native tar CLI not present in PATH. Use built-in tarfile!
+            try:
+                compress_tar_builtin(
+                    source=working_source,
+                    output_path=output_path,
+                    fmt=fmt,
+                    is_dir=is_dir,
+                    relative=relative,
+                    exclude_junk=exclude_junk,
+                )
+                cmd = [f"python-builtin-{fmt}", output_path]
+            except Exception as e:
+                return {
+                    "success": False,
+                    "error": f"Built-in TAR compression failed: {e}",
+                    "source": source,
+                    "output": output_path,
+                    "format": fmt,
+                }
         else:
-            cmd.append(working_source)
+            flag_map = {
+                "tar.gz": "-czf",
+                "tar.bz2": "-cjf",
+                "tar.xz": "-cJf",
+            }
+            tar_flag = flag_map[fmt]
+            cmd = ["tar", tar_flag, output_path]
+
+            if exclude_junk and is_dir:
+                for pat in junk_patterns:
+                    cmd.append(f"--exclude={pat}")
+
+            if relative:
+                if is_dir:
+                    cmd.extend(["-C", working_source, "."])
+                else:
+                    cmd.extend(["-C", source_parent, source_name])
+            else:
+                cmd.append(working_source)
 
     elif fmt == "dmg":
         if sys.platform != "darwin":
             return {
                 "success": False,
-                "error": "DMG creation is only supported on macOS",
+                "error": "Apple Disk Image (.dmg) creation is only supported on macOS",
                 "source": source,
                 "output": output_path,
                 "format": fmt,
@@ -521,34 +655,35 @@ def compress(
                 "format": fmt,
             }
 
-    try:
-        proc = subprocess.run(cmd, cwd=cwd, env=env, capture_output=True, text=True)
-        if proc.returncode != 0:
-            err_msg = proc.stderr.strip() or proc.stdout.strip() or f"Exit code {proc.returncode}"
-            if fmt == "dmg" and "Directory not empty" in err_msg:
-                err_msg += " (macOS sandbox or missing permissions. Use ZIP or TAR formats instead)."
+    if cmd and not cmd[0].startswith("python-builtin"):
+        try:
+            proc = subprocess.run(cmd, cwd=cwd, env=env, capture_output=True, text=True)
+            if proc.returncode != 0:
+                err_msg = proc.stderr.strip() or proc.stdout.strip() or f"Exit code {proc.returncode}"
+                if fmt == "dmg" and "Directory not empty" in err_msg:
+                    err_msg += " (macOS sandbox or missing permissions. Use ZIP or TAR formats instead)."
+                return {
+                    "success": False,
+                    "error": f"Compression failed: {err_msg}",
+                    "source": source,
+                    "output": output_path,
+                    "format": fmt,
+                    "command": " ".join(cmd),
+                }
+        except Exception as e:
             return {
                 "success": False,
-                "error": f"Compression failed: {err_msg}",
+                "error": f"Execution error: {e}",
                 "source": source,
                 "output": output_path,
                 "format": fmt,
-                "command": " ".join(cmd),
+                "command": " ".join(cmd) if cmd else "",
             }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": f"Execution error: {e}",
-            "source": source,
-            "output": output_path,
-            "format": fmt,
-            "command": " ".join(cmd) if cmd else "",
-        }
-    finally:
-        if temp_dmg_src and os.path.exists(temp_dmg_src):
-            shutil.rmtree(temp_dmg_src, ignore_errors=True)
-        if temp_opt_dir and os.path.exists(temp_opt_dir):
-            shutil.rmtree(temp_opt_dir, ignore_errors=True)
+        finally:
+            if temp_dmg_src and os.path.exists(temp_dmg_src):
+                shutil.rmtree(temp_dmg_src, ignore_errors=True)
+            if temp_opt_dir and os.path.exists(temp_opt_dir):
+                shutil.rmtree(temp_opt_dir, ignore_errors=True)
 
     if not os.path.exists(output_path):
         return {
@@ -584,7 +719,10 @@ def compress(
                 })
             base_clean = os.path.basename(strip_known_extension(output_path))
             ext = get_default_extension(fmt)
-            join_command = f'cat "{base_clean}_part"*{ext} > "{base_clean}{ext}"'
+            if sys.platform == "win32":
+                join_command = f'copy /b "{base_clean}_part"*{ext} "{base_clean}{ext}"'
+            else:
+                join_command = f'cat "{base_clean}_part"*{ext} > "{base_clean}{ext}"'
 
     return {
         "success": True,

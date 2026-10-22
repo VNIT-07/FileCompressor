@@ -1,0 +1,13 @@
+# Vercel Deployment Ignore
+.git/
+.venv/
+venv/
+start.bat
+server.py
+tests/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+.DS_Store
+Thumbs.db

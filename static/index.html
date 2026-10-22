@@ -49,7 +49,7 @@
             </div>
             <span class="brand-meta" id="platform-badge">
               <span class="status-indicator"></span>
-              macOS Native Engine Active
+              Native Engine Active
             </span>
           </div>
         </div>
@@ -87,8 +87,8 @@
               stroke-linecap="round" stroke-linejoin="round">
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
             </svg>
-            <span>Mac Filesystem</span>
-            <kbd class="tab-kbd">⌘1</kbd>
+            <span id="tab-local-label">Local Filesystem</span>
+            <kbd class="tab-kbd" id="tab-kbd-1">⌘1</kbd>
           </button>
           <button class="tab-btn" id="tab-upload-btn" data-tab="tab-upload" role="tab" aria-selected="false">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -98,7 +98,7 @@
               <line x1="12" y1="3" x2="12" y2="15"></line>
             </svg>
             <span>Drag &amp; Drop</span>
-            <kbd class="tab-kbd">⌘2</kbd>
+            <kbd class="tab-kbd" id="tab-kbd-2">⌘2</kbd>
           </button>
           <button class="tab-btn" id="tab-video-btn" data-tab="tab-video" role="tab" aria-selected="false">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -108,7 +108,7 @@
             </svg>
             <span>Reels &amp; Video</span>
             <span class="tab-new-badge">Reel</span>
-            <kbd class="tab-kbd">⌘3</kbd>
+            <kbd class="tab-kbd" id="tab-kbd-3">⌘3</kbd>
           </button>
           <button class="tab-btn" id="tab-history-btn" data-tab="tab-history" role="tab" aria-selected="false">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -118,7 +118,7 @@
             </svg>
             <span>Activity History</span>
             <span class="badge-counter" id="history-count">0</span>
-            <kbd class="tab-kbd">⌘4</kbd>
+            <kbd class="tab-kbd" id="tab-kbd-4">⌘4</kbd>
           </button>
         </nav>
       </div>
@@ -131,6 +131,30 @@
       <!-- TAB 1: LOCAL FILESYSTEM ARCHIVER                         -->
       <!-- ======================================================== -->
       <main class="tab-content active" id="tab-local" role="tabpanel">
+
+        <!-- Cloud Mode Notice Banner (Displayed automatically when deployed on Vercel/Cloud) -->
+        <div class="alert-banner alert-banner-cloud" id="cloud-mode-banner" style="display: none; margin-bottom: 24px;">
+          <div class="alert-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+            </svg>
+          </div>
+          <div class="alert-content-wrap">
+            <strong class="alert-title">Running in Cloud Mode (Vercel)</strong>
+            <p class="alert-desc" style="margin: 4px 0 10px 0; line-height: 1.5;">
+              Local macOS Finder pickers and local file paths require running FileCompressor on your desktop (<code>python server.py</code>). 
+              In this cloud deployment, use the <strong>Drag &amp; Drop</strong> tab to compress any file or folder directly in your browser.
+            </p>
+            <button type="button" class="btn-dock btn-dock-primary" id="btn-switch-to-upload">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              Switch to Drag &amp; Drop Archiver
+            </button>
+          </div>
+        </div>
 
         <!-- SECTION 1: Source Selection -->
         <div class="panel-section">
@@ -589,7 +613,7 @@
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
-              Show in Finder
+              <span id="btn-reveal-label">Show in Finder</span>
             </button>
             <button type="button" class="btn-dock" id="btn-download-result">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1065,7 +1089,7 @@
           </div>
 
           <div class="result-path-deck">
-            <span class="path-title">SAVED TO MAC:</span>
+            <span class="path-title" id="vstat-saved-label">SAVED LOCATION:</span>
             <code class="path-snippet" id="vresult-output-path">-</code>
           </div>
 
@@ -1075,7 +1099,7 @@
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
-              Show in Finder
+              <span id="vbtn-reveal-label">Show in Finder</span>
             </button>
             <button type="button" class="btn-dock" id="btn-compress-downloaded-video">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1139,7 +1163,7 @@
       </div>
       <div class="statusbar-right">
         <span class="statusbar-tag">Under 25MB Protection Active</span>
-        <span class="statusbar-kbd">⌘1–⌘4 Switch Views</span>
+        <span class="statusbar-kbd" id="statusbar-kbd-help">⌘1–⌘4 Switch Views</span>
       </div>
     </footer>
 
@@ -1151,6 +1175,8 @@
     <span id="toast-message">Notification</span>
   </div>
 
+  <!-- Client-Side High Performance ZIP Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="/static/app.js"></script>
   <script>
     // Theme toggle initial setup
