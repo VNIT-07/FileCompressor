@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FileCompressor Studio — Pro Archiving &amp; Media Engine</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+  <!-- Ambient background depth elements -->
+  <div class="ambient-glow-top" aria-hidden="true"></div>
+  <div class="ambient-glow-bottom" aria-hidden="true"></div>
+
+  <!-- Master App Window Shell -->
+  <div class="app-window">
+
+    <!-- Window Titlebar & Header -->
+    <header class="window-titlebar">
+      <!-- Top Bar: Traffic lights, Branding, Theme & Status -->
+      <div class="titlebar-top-bar">
+        <!-- Simulated macOS Traffic Lights -->
+        <div class="window-controls" aria-hidden="true">
+          <span class="control-dot close" title="Close"></span>
+          <span class="control-dot minimize" title="Minimize"></span>
+          <span class="control-dot expand" title="Expand"></span>
+        </div>
+
+        <!-- App Brand & Status -->
+        <div class="app-brand">
+          <div class="brand-mark">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+              </path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <div class="brand-title-row">
+              <span class="brand-name">FileCompressor Studio</span>
+              <span class="brand-pill">Pro</span>
+            </div>
+            <span class="brand-meta" id="platform-badge">
+              <span class="status-indicator"></span>
+              macOS Native Engine Active
+            </span>
+          </div>
+        </div>
+
+        <!-- Titlebar Right / Quick Tools -->
+        <div class="titlebar-actions">
+          <div class="system-status-chip">
+            <span class="pulse-dot"></span>
+            <span>Daemon Online</span>
+          </div>
+          <button type="button" class="btn-theme-toggle" id="btn-theme-toggle" title="Toggle Light / Dark theme"
+            aria-label="Toggle Theme">
+            <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+            <span class="theme-label">Theme</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Segmented Navigation Shelf -->
+      <div class="titlebar-nav-shelf">
+        <nav class="nav-tabs" role="tablist" aria-label="Workflow Navigation">
+          <button class="tab-btn active" id="tab-local-btn" data-tab="tab-local" role="tab" aria-selected="true">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>Mac Filesystem</span>
+            <kbd class="tab-kbd">⌘1</kbd>
+          </button>
+          <button class="tab-btn" id="tab-upload-btn" data-tab="tab-upload" role="tab" aria-selected="false">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span>Drag &amp; Drop</span>
+            <kbd class="tab-kbd">⌘2</kbd>
+          </button>
+          <button class="tab-btn" id="tab-video-btn" data-tab="tab-video" role="tab" aria-selected="false">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="23 7 16 12 23 17 23 7"></polygon>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+            </svg>
+            <span>Reels &amp; Video</span>
+            <span class="tab-new-badge">Reel</span>
+            <kbd class="tab-kbd">⌘3</kbd>
+          </button>
+          <button class="tab-btn" id="tab-history-btn" data-tab="tab-history" role="tab" aria-selected="false">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>Activity History</span>
+            <span class="badge-counter" id="history-count">0</span>
+            <kbd class="tab-kbd">⌘4</kbd>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main Workspace Body -->
+    <div class="window-body">
+
+      <!-- ======================================================== -->
+      <!-- TAB 1: LOCAL FILESYSTEM ARCHIVER                         -->
+      <!-- ======================================================== -->
+      <main class="tab-content active" id="tab-local" role="tabpanel">
+
+        <!-- SECTION 1: Source Selection -->
+        <div class="panel-section">
+          <div class="section-headline">
+            <div class="section-title-wrap">
+              <h2 class="section-title">Select File or Folder to Compress</h2>
+              <span class="section-badge">Step 1</span>
+            </div>
+            <p class="section-desc">Choose any folder, document file, or project codebase on your Mac.</p>
+          </div>
+
+          <div class="source-picker-block">
+            <div class="command-input-bar">
+              <div class="input-icon-glyph">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </div>
+              <input type="text" id="local-source-input" class="command-input"
+                placeholder="Paste path or use browse buttons (e.g. /Users/name/Documents/Project)" spellcheck="false"
+                autocomplete="off">
+              <div class="input-actions-dock">
+                <button type="button" class="btn-dock" id="btn-browse-file" title="Pick file using macOS native dialog">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                  </svg>
+                  Browse File...
+                </button>
+                <button type="button" class="btn-dock btn-dock-primary" id="btn-browse-folder"
+                  title="Pick folder using macOS native dialog">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  Browse Folder...
+                </button>
+              </div>
+            </div>
+
+            <!-- Live Source Status Card -->
+            <div class="source-inspector-card" id="source-info-bar" style="display: none;">
+              <div class="inspector-badge" id="source-type-tag">Folder</div>
+              <div class="inspector-details">
+                <span class="inspector-name" id="source-name-display">-</span>
+                <span class="inspector-sub">Verified filesystem path ready for compression</span>
+              </div>
+              <div class="inspector-size-tag" id="source-size-display">-</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Output Format Cards (5 blocks in 1 line) -->
+        <div class="panel-section panel-section-compact">
+          <div class="format-deck" id="format-grid">
+            <!-- ZIP -->
+            <label class="format-card selected" title="Universal ZIP archive — compatible across all platforms">
+              <input type="radio" name="format" value="zip" checked>
+              <div class="fcard-inner">
+                <div class="fcard-header">
+                  <div class="fcard-icon zip-icon">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.2">
+                      <path
+                        d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                      </path>
+                      <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                      <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                  </div>
+                  <span class="fcard-ext">.zip</span>
+                  <span class="fcard-check"></span>
+                </div>
+                <div class="fcard-tag-row">
+                  <span class="fcard-chip chip-blue">Universal</span>
+                  <span class="fcard-sub">All Devices</span>
+                </div>
+              </div>
+            </label>
+
+            <!-- TAR.GZ -->
+            <label class="format-card" title="GNU Gzip tarball — standard for Linux servers and codebases">
+              <input type="radio" name="format" value="tar.gz">
+              <div class="fcard-inner">
+                <div class="fcard-header">
+                  <div class="fcard-icon targz-icon">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.2">
+                      <polyline points="4 17 10 11 4 5"></polyline>
+                      <line x1="12" y1="19" x2="20" y2="19"></line>
+                    </svg>
+                  </div>
+                  <span class="fcard-ext">.tar.gz</span>
+                  <span class="fcard-check"></span>
+                </div>
+                <div class="fcard-tag-row">
+                  <span class="fcard-chip chip-emerald">Unix Fast</span>
+                  <span class="fcard-sub">Dev &amp; Cloud</span>
+                </div>
+              </div>
+            </label>
+
+            <!-- TAR.BZ2 -->
+            <label class="format-card" title="Bzip2 tarball — exceptional compression ratio for text and logs">
+              <input type="radio" name="format" value="tar.bz2">
+              <div class="fcard-inner">
+                <div class="fcard-header">
+                  <div class="fcard-icon tarbz2-icon">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.2">
+                      <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                      <line x1="9" y1="9" x2="15" y2="15"></line>
+                      <line x1="15" y1="9" x2="9" y2="15"></line>
+                    </svg>
+                  </div>
+                  <span class="fcard-ext">.tar.bz2</span>
+                  <span class="fcard-check"></span>
+                </div>
+                <div class="fcard-tag-row">
+                  <span class="fcard-chip chip-amber">High Ratio</span>
+                  <span class="fcard-sub">Text &amp; Logs</span>
+                </div>
+              </div>
+            </label>
+
+            <!-- TAR.XZ -->
+            <label class="format-card" title="LZMA2 tarball — maximum byte density for smallest size">
+              <input type="radio" name="format" value="tar.xz">
+              <div class="fcard-inner">
+                <div class="fcard-header">
+                  <div class="fcard-icon tarxz-icon">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.2">
+                      <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                      <path d="M2 17l10 5 10-5"></path>
+                      <path d="M2 12l10 5 10-5"></path>
+                    </svg>
+                  </div>
+                  <span class="fcard-ext">.tar.xz</span>
+                  <span class="fcard-check"></span>
+                </div>
+                <div class="fcard-tag-row">
+                  <span class="fcard-chip chip-purple">Ultra LZMA</span>
+                  <span class="fcard-sub">Max Density</span>
+                </div>
+              </div>
+            </label>
+
+            <!-- DMG -->
+            <label class="format-card" title="Apple UDZO disk image — native macOS container">
+              <input type="radio" name="format" value="dmg">
+              <div class="fcard-inner">
+                <div class="fcard-header">
+                  <div class="fcard-icon dmg-icon">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.2">
+                      <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </div>
+                  <span class="fcard-ext">.dmg</span>
+                  <span class="fcard-check"></span>
+                </div>
+                <div class="fcard-tag-row">
+                  <span class="fcard-chip chip-slate">Apple Disk</span>
+                  <span class="fcard-sub">macOS UDZO</span>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- SECTION 3: Capacity & Size Limit (The Under 25 MB Engine) -->
+        <div class="panel-section">
+          <div class="section-headline">
+            <div class="section-title-wrap">
+              <h2 class="section-title">Size Limit &amp; Smart Optimizations</h2>
+              <span class="section-badge">Step 3</span>
+            </div>
+            <p class="section-desc">Guarantee output files respect attachment ceilings for Gmail, Outlook, Discord, and
+              messaging apps.</p>
+          </div>
+
+          <div class="capacity-engine-box">
+            <!-- Master Enable Switch -->
+            <div class="switch-row-header">
+              <label class="switch-pill-label" for="chk-target-limit">
+                <input type="checkbox" id="chk-target-limit" checked>
+                <span class="switch-ui"><span class="switch-thumb"></span></span>
+                <span class="switch-title">Target Maximum Archive Size: <strong id="target-label-text">25
+                    MB</strong></span>
+              </label>
+              <span class="capacity-indicator-pill">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Size Gate Active
+              </span>
+            </div>
+
+            <div class="target-controls" id="target-controls">
+              <div class="capacity-input-deck">
+                <div class="size-stepper-wrap">
+                  <span class="size-prefix">Limit:</span>
+                  <input type="number" id="target-size-input" class="size-number-input" value="25" min="1" max="1000"
+                    step="1">
+                  <span class="size-unit">MB</span>
+                </div>
+                <div class="target-presets">
+                  <button type="button" class="btn-preset active-chip" data-preset="25">
+                    <span class="preset-name">25 MB</span>
+                    <span class="preset-note">Gmail / Outlook</span>
+                  </button>
+                  <button type="button" class="btn-preset" data-preset="10">
+                    <span class="preset-name">10 MB</span>
+                    <span class="preset-note">Discord Free</span>
+                  </button>
+                  <button type="button" class="btn-preset" data-preset="50">
+                    <span class="preset-name">50 MB</span>
+                    <span class="preset-note">Standard</span>
+                  </button>
+                  <button type="button" class="btn-preset" data-preset="100">
+                    <span class="preset-name">100 MB</span>
+                    <span class="preset-note">High Capacity</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Precision Optimization Switches Grid -->
+            <div class="switches-grid">
+              <label class="switch-card" for="chk-split-exceeds">
+                <div class="switch-card-text">
+                  <span class="switch-card-title">Auto-Split into Multi-Part Volumes</span>
+                  <span class="switch-card-desc">Automatically divides oversized archives into numbered parts (&lt; 25
+                    MB each) with a 1-click reassembly script.</span>
+                </div>
+                <div class="switch-toggle-slot">
+                  <input type="checkbox" id="chk-split-exceeds" checked>
+                  <span class="switch-ui"><span class="switch-thumb"></span></span>
+                </div>
+              </label>
+
+              <label class="switch-card" for="chk-optimize-media">
+                <div class="switch-card-text">
+                  <span class="switch-card-title">Smart Photo &amp; Image Optimization</span>
+                  <span class="switch-card-desc">Intelligently resamples large photos inside your folder so the archive
+                    fits under your target size limit.</span>
+                </div>
+                <div class="switch-toggle-slot">
+                  <input type="checkbox" id="chk-optimize-media" checked>
+                  <span class="switch-ui"><span class="switch-thumb"></span></span>
+                </div>
+              </label>
+
+              <label class="switch-card" for="chk-exclude-junk">
+                <div class="switch-card-text">
+                  <span class="switch-card-title">Exclude Cache &amp; Unneeded Files</span>
+                  <span class="switch-card-desc">Cuts archive size by omitting <code>node_modules</code>,
+                    <code>.git</code>, <code>.DS_Store</code>, and temporary caches.</span>
+                </div>
+                <div class="switch-toggle-slot">
+                  <input type="checkbox" id="chk-exclude-junk" checked>
+                  <span class="switch-ui"><span class="switch-thumb"></span></span>
+                </div>
+              </label>
+
+              <label class="switch-card" for="chk-max-compress">
+                <div class="switch-card-text">
+                  <span class="switch-card-title">Maximum Level 9 Ultra Compression</span>
+                  <span class="switch-card-desc">Employs maximum compression effort for optimal file reduction across
+                    documents, text, and code.</span>
+                </div>
+                <div class="switch-toggle-slot">
+                  <input type="checkbox" id="chk-max-compress" checked>
+                  <span class="switch-ui"><span class="switch-thumb"></span></span>
+                </div>
+              </label>
+
+              <label class="switch-card" for="chk-relative">
+                <div class="switch-card-text">
+                  <span class="switch-card-title">Store Clean Relative Paths</span>
+                  <span class="switch-card-desc">Creates clean root entries without deep parent directories when
+                    uncompressed by your recipient.</span>
+                </div>
+                <div class="switch-toggle-slot">
+                  <input type="checkbox" id="chk-relative" checked>
+                  <span class="switch-ui"><span class="switch-thumb"></span></span>
+                </div>
+              </label>
+
+              <label class="switch-card" for="chk-overwrite">
+                <div class="switch-card-text">
+                  <span class="switch-card-title">Overwrite Existing Archive</span>
+                  <span class="switch-card-desc">Replaces previously generated archives with matching filenames rather
+                    than creating duplicates.</span>
+                </div>
+                <div class="switch-toggle-slot">
+                  <input type="checkbox" id="chk-overwrite" checked>
+                  <span class="switch-ui"><span class="switch-thumb"></span></span>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- SECTION 4: Output Destination (Optional) -->
+        <div class="panel-section">
+          <div class="section-headline">
+            <div class="section-title-wrap">
+              <h2 class="section-title">Save Location <span class="title-optional">(Optional)</span></h2>
+            </div>
+            <p class="section-desc">Defaults to saving directly next to your source file or folder on your Mac.</p>
+          </div>
+
+          <div class="command-input-bar">
+            <div class="input-icon-glyph">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </div>
+            <input type="text" id="local-output-input" class="command-input"
+              placeholder="Leave blank to save next to source file or folder" spellcheck="false">
+            <div class="input-actions-dock">
+              <button type="button" class="btn-dock" id="btn-browse-dest" title="Pick destination folder">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+                Choose Folder...
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Command Dock -->
+        <div class="action-command-dock">
+          <button type="button" class="btn-primary-action" id="btn-compress-local">
+            <svg class="action-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.2">
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+              </path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+            <span class="btn-text">Compress Archive Now</span>
+            <span class="btn-spinner" style="display: none;"></span>
+          </button>
+          <div class="action-meta-info">
+            <span class="status-live-dot"></span>
+            <span class="action-status-text" id="local-status-text">Ready to compress</span>
+          </div>
+        </div>
+
+        <!-- Error Notification Banner -->
+        <div class="alert-banner alert-banner-error" id="local-error-alert" style="display: none;">
+          <div class="alert-icon-wrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <div class="alert-content">
+            <strong class="alert-title" id="error-title">Compression Error</strong>
+            <p class="alert-desc" id="error-message">-</p>
+          </div>
+        </div>
+
+        <!-- Result Completion Deck -->
+        <div class="result-deck" id="local-result-card" style="display: none;">
+          <div class="result-deck-header">
+            <div class="result-lead">
+              <div class="result-success-circle">
+                <span id="result-status-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </span>
+              </div>
+              <div class="result-text-group">
+                <h3 class="result-headline" id="result-title-text">Archive Created Successfully</h3>
+                <span class="result-timestamp" id="result-time-text">Finished in 0.2s</span>
+              </div>
+            </div>
+            <div class="savings-tag" id="result-savings-pill">-65% Saved</div>
+          </div>
+
+          <!-- Capacity Limit Banner -->
+          <div class="limit-status-banner" id="limit-banner" style="display: none;">
+            <div class="limit-status-icon" id="limit-banner-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <div class="limit-status-body">
+              <strong id="limit-banner-title">Under 25 MB Limit</strong>
+              <p id="limit-banner-desc">Ready for direct Gmail, Outlook, or Discord attachment.</p>
+            </div>
+            <button type="button" class="btn-action-split" id="btn-manual-split" style="display: none;">
+              Split into &lt;25 MB Parts
+            </button>
+          </div>
+
+          <!-- 4-Stat Metric Deck -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <span class="metric-label">ORIGINAL SIZE</span>
+              <span class="metric-val" id="stat-orig-size">-</span>
+            </div>
+            <div class="metric-card metric-card-highlight">
+              <span class="metric-label">COMPRESSED SIZE</span>
+              <span class="metric-val" id="stat-comp-size">-</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">SPACE SAVED</span>
+              <span class="metric-val text-emerald" id="stat-saved-bytes">-</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">ARCHIVE FORMAT</span>
+              <span class="metric-val" id="stat-format">-</span>
+            </div>
+          </div>
+
+          <!-- Output Path Display -->
+          <div class="result-path-deck">
+            <span class="path-title">OUTPUT PATH:</span>
+            <code class="path-snippet" id="result-output-path">-</code>
+          </div>
+
+          <!-- Multi-Part Volumes Deck (if split) -->
+          <div class="split-volumes-deck" id="split-parts-box" style="display: none;">
+            <div class="split-volumes-header">
+              <div class="split-headline">
+                <strong>Sequential Volumes (<span id="split-count-label">0</span> parts)</strong>
+                <span class="split-guarantee-chip">All parts strictly &lt; 25 MB</span>
+              </div>
+            </div>
+            <ul class="split-volumes-list" id="split-parts-list"></ul>
+            <div class="reassembly-dock join-command-row">
+              <span class="reassembly-title">Terminal Reassembly Command:</span>
+              <div class="reassembly-code-row">
+                <code id="join-command-code">cat archive.part* &gt; archive.zip</code>
+                <button type="button" class="btn-copy-code" id="btn-copy-join">Copy Command</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Result Footer Actions -->
+          <div class="result-actions-strip">
+            <button type="button" class="btn-dock btn-dock-primary" id="btn-reveal-finder">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              Show in Finder
+            </button>
+            <button type="button" class="btn-dock" id="btn-download-result">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Download via Browser
+            </button>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- ======================================================== -->
+      <!-- TAB 2: BROWSER DROP ZONE (DRAG & DROP)                  -->
+      <!-- ======================================================== -->
+      <main class="tab-content" id="tab-upload" role="tabpanel" style="display: none;">
+        <div class="panel-section">
+          <div class="section-headline">
+            <div class="section-title-wrap">
+              <h2 class="section-title">Drag &amp; Drop Files or Folders</h2>
+              <span class="section-badge">Browser Archiver</span>
+            </div>
+            <p class="section-desc">Instantly compress files and folders in your browser without entering any filesystem
+              path.</p>
+          </div>
+
+          <!-- Drop Surface -->
+          <div class="drop-surface" id="upload-dropzone">
+            <div class="drop-blueprint-grid" aria-hidden="true"></div>
+            <div class="drop-content-inner">
+              <div class="drop-icon-ring">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+              </div>
+              <h3 class="drop-title">Drag &amp; drop files or folders here</h3>
+              <p class="drop-sub">Release items anywhere on this canvas to stage for instant compression</p>
+
+              <div class="drop-triggers-dock">
+                <label class="btn-dock btn-dock-primary btn-file-label">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                  </svg>
+                  Choose Files...
+                  <input type="file" id="upload-file-input" multiple style="display: none;">
+                </label>
+                <label class="btn-dock btn-file-label">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  Choose Folder...
+                  <input type="file" id="upload-folder-input" webkitdirectory directory multiple style="display: none;">
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Staged files list drawer -->
+          <div class="staged-drawer" id="staged-box" style="display: none;">
+            <div class="staged-header">
+              <div class="staged-meta">
+                <span class="status-live-dot"></span>
+                <span class="staged-count-text" id="staged-count-label">0 items staged</span>
+              </div>
+              <button type="button" class="btn-link" id="btn-clear-staged">Clear All</button>
+            </div>
+            <ul class="staged-list" id="staged-list"></ul>
+          </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Format Selector for Drop Zone -->
+        <div class="panel-section">
+          <div class="section-headline">
+            <div class="section-title-wrap">
+              <h2 class="section-title">Select Compression Format</h2>
+            </div>
+            <p class="section-desc">Choose which format to download the compressed archive as.</p>
+          </div>
+
+          <div class="pill-format-strip">
+            <label class="pill-radio selected">
+              <input type="radio" name="upload-format" value="zip" checked>
+              <span class="pill-body">
+                <strong class="pill-name">.zip</strong>
+                <span class="pill-tag">Universal</span>
+              </span>
+            </label>
+            <label class="pill-radio">
+              <input type="radio" name="upload-format" value="tar.gz">
+              <span class="pill-body">
+                <strong class="pill-name">.tar.gz</strong>
+                <span class="pill-tag">Unix Gzip</span>
+              </span>
+            </label>
+            <label class="pill-radio">
+              <input type="radio" name="upload-format" value="tar.bz2">
+              <span class="pill-body">
+                <strong class="pill-name">.tar.bz2</strong>
+                <span class="pill-tag">Bzip2</span>
+              </span>
+            </label>
+            <label class="pill-radio">
+              <input type="radio" name="upload-format" value="tar.xz">
+              <span class="pill-body">
+                <strong class="pill-name">.tar.xz</strong>
+                <span class="pill-tag">LZMA2</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Action Command Dock -->
+        <div class="action-command-dock">
+          <button type="button" class="btn-primary-action" id="btn-compress-upload" disabled>
+            <svg class="action-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span class="btn-text">Compress &amp; Download Archive</span>
+            <span class="btn-spinner" style="display: none;"></span>
+          </button>
+          <div class="action-meta-info">
+            <span class="action-status-text" id="upload-status-text">Select files to begin</span>
+          </div>
+        </div>
+      </main>
+
+      <!-- ======================================================== -->
+      <!-- TAB 3: VIDEO & REELS STUDIO                              -->
+      <!-- ======================================================== -->
+      <main class="tab-content" id="tab-video" role="tabpanel" style="display: none;">
+        <div class="panel-section">
+          <div class="section-headline">
+            <div class="section-title-wrap">
+              <h2 class="section-title">Download Instagram Reels, YouTube &amp; Pinterest</h2>
+              <span class="section-badge-ig">Native Full HD</span>
+            </div>
+            <p class="section-desc">Download videos and audio tracks with guaranteed exact native pixel dimensions
+              (1080×1920, 4K, 1080p).</p>
+          </div>
+
+          <!-- Video URL Command Bar -->
+          <div class="command-input-bar video-url-bar">
+            <div class="input-icon-glyph">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+              </svg>
+            </div>
+            <input type="text" id="video-url-input" class="command-input"
+              placeholder="Paste Instagram Reel link, YouTube video URL, or Pinterest pin..." spellcheck="false"
+              autocomplete="off">
+            <!-- Live Platform Detection Chip -->
+            <div id="video-platform-badge" class="platform-chip" style="display: none;">
+              <span class="platform-dot"></span>
+              <span id="video-platform-name">Platform</span>
+            </div>
+
+            <div class="input-actions-dock">
+              <button type="button" class="btn-dock" id="btn-paste-video-url" title="Paste link from clipboard">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                </svg>
+                Paste Link
+              </button>
+              <button type="button" class="btn-dock btn-dock-primary" id="btn-inspect-video">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <span class="btn-text">Inspect Media</span>
+                <span class="btn-spinner" style="display: none;"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Supported Platforms Strip -->
+          <div class="supported-services-strip">
+            <span class="services-label">Supported Services:</span>
+            <div class="services-pills">
+              <span class="service-pill service-pill-ig">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                </svg>
+                Instagram Reels &amp; Posts
+              </span>
+              <span class="service-pill service-pill-yt">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                </svg>
+                YouTube &amp; Shorts
+              </span>
+              <span class="service-pill service-pill-pin">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M12 0a12 12 0 0 0-4.37 23.17c-.07-.95-.13-2.4.03-3.44l1.04-4.4s-.26-.53-.26-1.32c0-1.24.72-2.17 1.62-2.17.76 0 1.13.57 1.13 1.26 0 .77-.49 1.92-.74 2.98-.21.9.45 1.63 1.33 1.63 1.6 0 2.83-1.68 2.83-4.11 0-2.15-1.54-3.65-3.75-3.65-2.55 0-4.05 1.91-4.05 3.89 0 .77.3 1.6.67 2.05a.3.3 0 0 1 .07.29c-.07.3-.23.95-.26 1.08-.04.18-.15.22-.34.13-1.28-.6-2.08-2.47-2.08-3.98 0-3.24 2.35-6.21 6.79-6.21 3.56 0 6.33 2.54 6.33 5.93 0 3.54-2.23 6.39-5.33 6.39-1.04 0-2.02-.54-2.36-1.18l-.64 2.45c-.23.89-.86 2.01-1.28 2.7A12 12 0 1 0 12 0z" />
+                </svg>
+                Pinterest Video Pins
+              </span>
+              <span class="service-guarantee">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Original Resolution Preserved
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Error Banner -->
+        <div class="alert-banner alert-banner-error" id="video-error-alert" style="display: none;">
+          <div class="alert-icon-wrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <span id="video-error-message">Error message</span>
+        </div>
+
+        <!-- Media Inspector Card (Shown after Inspect) -->
+        <div class="media-inspector-card" id="video-preview-card" style="display: none;">
+          <div class="media-frame">
+            <img id="video-thumb-img" src="" alt="Thumbnail preview">
+            <span class="media-duration-badge" id="video-duration-badge">00:00</span>
+          </div>
+
+          <div class="media-meta-deck">
+            <div class="media-tags-row">
+              <span class="media-platform-tag" id="preview-platform-tag">Instagram Reel</span>
+              <span class="media-aspect-tag" id="preview-aspect-tag">9:16 Vertical Reel</span>
+            </div>
+
+            <h3 class="media-title" id="video-title-display">Video Title</h3>
+            <p class="media-uploader" id="video-uploader-display">@creator</p>
+
+            <!-- Exact Pixel Dimensions Banner -->
+            <div class="dimension-guarantee-deck">
+              <div class="dim-icon-wrap">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="3" y1="9" x2="21" y2="9"></line>
+                  <line x1="9" y1="21" x2="9" y2="9"></line>
+                </svg>
+              </div>
+              <div class="dim-text-wrap">
+                <span class="dim-title">Exact Native Pixel Dimension:</span>
+                <strong class="dim-value" id="video-dimensions-display">1080 × 1920 px</strong>
+                <span class="dim-sub">Preserved without any downscaling, cropping, or distortion.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Format & Destination Options -->
+        <div class="video-options-deck" id="video-options-section" style="display: none;">
+          <div class="section-divider"></div>
+
+          <div class="panel-section">
+            <div class="section-headline">
+              <div class="section-title-wrap">
+                <h2 class="section-title">Select Output Format</h2>
+              </div>
+              <p class="section-desc">Video formats preserve exact pixel resolution; Audio formats extract clean sound
+                tracks.</p>
+            </div>
+
+            <div class="vformat-grid" id="video-format-grid">
+              <!-- MP4 -->
+              <label class="vformat-card selected">
+                <input type="radio" name="video_format" value="mp4" checked>
+                <div class="vformat-inner">
+                  <div class="vformat-top">
+                    <span class="vformat-ext">.mp4</span>
+                    <span class="vformat-chip chip-blue">Universal</span>
+                  </div>
+                  <p class="vformat-desc">H.264 / AAC. Full hardware compatibility across iPhone, Mac, Android, and web.
+                  </p>
+                </div>
+              </label>
+
+              <!-- WebM -->
+              <label class="vformat-card">
+                <input type="radio" name="video_format" value="webm">
+                <div class="vformat-inner">
+                  <div class="vformat-top">
+                    <span class="vformat-ext">.webm</span>
+                    <span class="vformat-chip chip-emerald">Web Ready</span>
+                  </div>
+                  <p class="vformat-desc">Modern VP9 / Opus stream. Ultra efficient modern web streaming format.</p>
+                </div>
+              </label>
+
+              <!-- MKV -->
+              <label class="vformat-card">
+                <input type="radio" name="video_format" value="mkv">
+                <div class="vformat-inner">
+                  <div class="vformat-top">
+                    <span class="vformat-ext">.mkv</span>
+                    <span class="vformat-chip chip-purple">Matroska</span>
+                  </div>
+                  <p class="vformat-desc">Lossless container preserving all original video and audio sub-streams.</p>
+                </div>
+              </label>
+
+              <!-- MOV -->
+              <label class="vformat-card">
+                <input type="radio" name="video_format" value="mov">
+                <div class="vformat-inner">
+                  <div class="vformat-top">
+                    <span class="vformat-ext">.mov</span>
+                    <span class="vformat-chip chip-slate">Apple Native</span>
+                  </div>
+                  <p class="vformat-desc">Apple QuickTime container format. Perfect for Final Cut Pro and macOS apps.
+                  </p>
+                </div>
+              </label>
+
+              <!-- MP3 Audio -->
+              <label class="vformat-card">
+                <input type="radio" name="video_format" value="mp3">
+                <div class="vformat-inner">
+                  <div class="vformat-top">
+                    <span class="vformat-ext">.mp3</span>
+                    <span class="vformat-chip chip-amber">Audio 320k</span>
+                  </div>
+                  <p class="vformat-desc">High quality 320 kbps MP3 soundtrack extracted directly from the video stream.
+                  </p>
+                </div>
+              </label>
+
+              <!-- M4A Audio -->
+              <label class="vformat-card">
+                <input type="radio" name="video_format" value="m4a">
+                <div class="vformat-inner">
+                  <div class="vformat-top">
+                    <span class="vformat-ext">.m4a</span>
+                    <span class="vformat-chip chip-amber">Apple AAC</span>
+                  </div>
+                  <p class="vformat-desc">Clean Apple AAC audio stream without lossy transcoding.</p>
+                </div>
+              </label>
+            </div>
+
+            <!-- Resolution Filter Row -->
+            <div class="resolution-row" id="video-resolution-row">
+              <span class="res-row-label">RESOLUTION PREFERENCE:</span>
+              <div class="resolution-chips" id="video-resolution-chips">
+                <button type="button" class="btn-chip active-chip" data-res="original">
+                  Original Native (Same Pixels)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <!-- Video Destination Folder -->
+          <div class="panel-section">
+            <div class="section-headline">
+              <div class="section-title-wrap">
+                <h2 class="section-title">Save Location on Mac</h2>
+              </div>
+              <p class="section-desc">Destination directory where the downloaded video or audio track will be placed.
+              </p>
+            </div>
+
+            <div class="command-input-bar">
+              <div class="input-icon-glyph">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </div>
+              <input type="text" id="video-dest-input" class="command-input" placeholder="/Users/username/Downloads"
+                spellcheck="false">
+              <div class="input-actions-dock">
+                <button type="button" class="btn-dock" id="btn-browse-video-dest" title="Pick destination folder">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  Choose Folder...
+                </button>
+              </div>
+            </div>
+
+            <div class="shortcuts-strip">
+              <span class="shortcuts-caption">Quick Targets:</span>
+              <div class="shortcuts-pills">
+                <button type="button" class="chip-shortcut" id="chip-video-downloads">Downloads</button>
+                <button type="button" class="chip-shortcut" id="chip-video-desktop">Desktop</button>
+                <button type="button" class="chip-shortcut" id="chip-video-movies">Movies</button>
+              </div>
+            </div>
+
+            <!-- Custom File Name -->
+            <div class="custom-name-box">
+              <label class="custom-name-label" for="video-custom-name">Custom File Name (Optional):</label>
+              <input type="text" id="video-custom-name" class="command-input"
+                placeholder="Leave blank to use original video title" spellcheck="false">
+            </div>
+          </div>
+
+          <!-- Video Action Dock -->
+          <div class="action-command-dock">
+            <button type="button" class="btn-primary-action" id="btn-download-video-mac">
+              <svg class="action-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span class="btn-text" id="video-download-btn-text">Download to Mac</span>
+              <span class="btn-spinner" style="display: none;"></span>
+            </button>
+            <button type="button" class="btn-dock" id="btn-download-video-browser">
+              Download via Browser
+            </button>
+            <div class="action-meta-info">
+              <span class="status-live-dot"></span>
+              <span class="action-status-text" id="video-status-text">Ready to download</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Download Result Card -->
+        <div class="result-deck" id="video-result-card" style="display: none;">
+          <div class="result-deck-header">
+            <div class="result-lead">
+              <div class="result-success-circle">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <div class="result-text-group">
+                <h3 class="result-headline">Download Completed Successfully</h3>
+                <span class="result-timestamp" id="vresult-title-text">-</span>
+              </div>
+            </div>
+            <div class="savings-tag" id="vresult-badge">Verified Native Resolution</div>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <span class="metric-label">FILE SIZE</span>
+              <span class="metric-val" id="vstat-size">-</span>
+            </div>
+            <div class="metric-card metric-card-highlight">
+              <span class="metric-label">EXACT PIXEL DIMENSIONS</span>
+              <span class="metric-val text-blue" id="vstat-dimensions">-</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">CONTAINER FORMAT</span>
+              <span class="metric-val" id="vstat-format">-</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">PLATFORM SOURCE</span>
+              <span class="metric-val" id="vstat-platform">-</span>
+            </div>
+          </div>
+
+          <div class="result-path-deck">
+            <span class="path-title">SAVED TO MAC:</span>
+            <code class="path-snippet" id="vresult-output-path">-</code>
+          </div>
+
+          <div class="result-actions-strip">
+            <button type="button" class="btn-dock btn-dock-primary" id="btn-reveal-video-finder">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              Show in Finder
+            </button>
+            <button type="button" class="btn-dock" id="btn-compress-downloaded-video">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path
+                  d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                </path>
+              </svg>
+              Compress this Video (&lt; 25MB)
+            </button>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- ======================================================== -->
+      <!-- TAB 4: SESSION HISTORY                                   -->
+      <!-- ======================================================== -->
+      <main class="tab-content" id="tab-history" role="tabpanel" style="display: none;">
+        <div class="panel-section">
+          <div class="section-headline">
+            <div class="section-title-wrap">
+              <h2 class="section-title">Session Archives &amp; Downloads</h2>
+            </div>
+            <p class="section-desc">Real-time log of archives created and media downloaded during this server run.</p>
+            <div style="margin-top: 6px;">
+              <button type="button" class="btn-dock" id="btn-refresh-history">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <polyline points="1 20 1 14 7 14"></polyline>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                Refresh Log
+              </button>
+            </div>
+          </div>
+
+          <div id="history-container">
+            <div class="empty-state" id="history-empty">
+              <div class="empty-icon-wrap">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+              <h3 class="empty-title">No session activity yet</h3>
+              <p class="empty-desc">Archives and downloads created during this session will appear here with instant
+                Finder shortcuts.</p>
+            </div>
+            <div class="history-list" id="history-list" style="display: none;"></div>
+          </div>
+        </div>
+      </main>
+
+    </div><!-- /.window-body -->
+
+    <!-- Status Bar Footer -->
+    <footer class="window-statusbar">
+      <div class="statusbar-left">
+        <span class="status-indicator"></span>
+        <span class="statusbar-text">Daemon Listening on Localhost • Level 9 Ultra Engine</span>
+      </div>
+      <div class="statusbar-right">
+        <span class="statusbar-tag">Under 25MB Protection Active</span>
+        <span class="statusbar-kbd">⌘1–⌘4 Switch Views</span>
+      </div>
+    </footer>
+
+  </div><!-- /.app-window -->
+
+  <!-- Toast Notification -->
+  <div class="toast" id="app-toast" style="display: none;">
+    <span class="toast-dot"></span>
+    <span id="toast-message">Notification</span>
+  </div>
+
+  <script src="/static/app.js"></script>
+  <script>
+    // Theme toggle initial setup
+    (function () {
+      const savedTheme = localStorage.getItem('fc_theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      const themeBtn = document.getElementById('btn-theme-toggle');
+      if (themeBtn) {
+        themeBtn.addEventListener('click', function () {
+          const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+          const next = current === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+          localStorage.setItem('fc_theme', next);
+        });
+      }
+    })();
+  </script>
+</body>
+
+</html>
