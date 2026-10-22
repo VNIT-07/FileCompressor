@@ -257,7 +257,9 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 68px;
+  width: auto;
+  margin-right: 6px;
+  flex-shrink: 0;
 }
 
 .control-dot {
@@ -288,11 +290,12 @@ body {
   opacity: 0.85;
 }
 
-/* App Branding */
+/* App Branding (Shifted Left) */
 .app-brand {
   display: flex;
   align-items: center;
   gap: 14px;
+  margin-right: auto;
 }
 
 .brand-mark {
@@ -359,26 +362,6 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.system-status-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 9999px;
-  background-color: var(--bg-subtle);
-  border: 1px solid var(--border-subtle);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.pulse-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--primary);
 }
 
 .btn-theme-toggle {
