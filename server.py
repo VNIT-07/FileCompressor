@@ -527,58 +527,58 @@ class CompressorRequestHandler(BaseHTTPRequestHandler):
 
         temp_dir = tempfile.mkdtemp(prefix="upload_pack_")
         try:
-            # cgi module parsing for multipart data
-            environ = {
-                "REQUEST_METHOD": "POST",
-                "CONTENT_TYPE": self.headers.get("Content-Type"),
-                "CONTENT_LENGTH": self.headers.get("Content-Length"),
-            }
-            form = cgi.FieldStorage(
-                fp=self.rfile,
-                headers=self.headers,
-                environ=environ,
-                keep_blank_values=True,
-            )
+            content_length = int(self.headers.get("Content-Length", 0))
+            raw_body = self.rfile.read(content_length)
 
-            fmt = form.getvalue("format", "zip")
-            files = form["files"] if "files" in form else None
-            if not files:
-                self.send_error_json("No files uploaded", 400)
+            fmt = "zip"
+            files_to_save = []
+
+            # Extract boundary
+            boundary = None
+            for param in content_type.split(";"):
+                param = param.strip()
+                if param.startswith("boundary="):
+                    boundary = param[len("boundary="):].strip("\"'").encode("latin-1")
+                    break
+
+            if not boundary:
+                boundary = content_type.split("boundary=")[-1].strip().encode()
+
+            parts = raw_body.split(b"--" + boundary)
+            for part in parts:
+                if b"Content-Disposition" in part:
+                    header_data, _, body_data = part.partition(b"\r\n\r\n")
+                    header_str = header_data.decode("utf-8", errors="ignore")
+                    body_data = body_data.rstrip(b"\r\n")
+                    if 'name="format"' in header_str:
+                        parsed_fmt = body_data.decode("utf-8", errors="ignore").strip()
+                        if parsed_fmt:
+                            fmt = parsed_fmt
+                    elif 'name="files"' in header_str and 'filename="' in header_str:
+                        fn_start = header_str.find('filename="') + 10
+                        fn_end = header_str.find('"', fn_start)
+                        if fn_start != -1 and fn_end != -1:
+                            fname = os.path.basename(header_str[fn_start:fn_end])
+                            if fname:
+                                files_to_save.append((fname, body_data))
+
+            if len(files_to_save) == 0:
+                self.send_error_json("No valid files uploaded", 400)
                 return
-
-            if not isinstance(files, list):
-                files = [files]
 
             upload_dir = os.path.join(temp_dir, "files")
             os.makedirs(upload_dir, exist_ok=True)
 
-            archive_basename = "compressed_files"
-            saved_count = 0
+            archive_basename = os.path.splitext(files_to_save[0][0])[0] if len(files_to_save) == 1 else "compressed_files"
+            for fname, data_bytes in files_to_save:
+                dest_file = os.path.join(upload_dir, fname)
+                os.makedirs(os.path.dirname(dest_file), exist_ok=True)
+                with open(dest_file, "wb") as f_out:
+                    f_out.write(data_bytes)
 
-            for item in files:
-                if item.filename:
-                    # Sanitize filename
-                    fname = os.path.basename(item.filename)
-                    if not fname:
-                        continue
-                    if saved_count == 0:
-                        archive_basename = os.path.splitext(fname)[0]
-                    dest_file = os.path.join(upload_dir, fname)
-                    with open(dest_file, "wb") as f_out:
-                        shutil.copyfileobj(item.file, f_out)
-                    saved_count += 1
-
-            if saved_count == 0:
-                self.send_error_json("Uploaded files were empty", 400)
-                return
-
-            # If only 1 file was uploaded, compress that single file directly
-            if saved_count == 1:
-                source_to_compress = os.path.join(upload_dir, os.listdir(upload_dir)[0])
-            else:
-                source_to_compress = upload_dir
-
+            source_to_compress = os.path.join(upload_dir, files_to_save[0][0]) if len(files_to_save) == 1 else upload_dir
             out_archive = os.path.join(temp_dir, f"{archive_basename}{get_default_extension(fmt)}")
+
             res = compress(
                 source=source_to_compress,
                 output=out_archive,
@@ -595,12 +595,26 @@ class CompressorRequestHandler(BaseHTTPRequestHandler):
             file_size = os.path.getsize(final_file)
             filename = os.path.basename(final_file)
 
+            # Record in server session history
+            COMPRESSION_HISTORY.insert(0, {
+                "source_name": filename,
+                "output_name": filename,
+                "format": fmt,
+                "original_size": res.get("original_size", file_size),
+                "compressed_size": file_size,
+                "saved_bytes": res.get("saved_bytes", 0),
+                "saved_percentage": res.get("saved_percentage", 0),
+                "time_taken": res.get("time_taken", 0.1),
+                "timestamp": res.get("timestamp", ""),
+            })
+
             self.send_response(200)
             self.send_header("Content-Type", "application/octet-stream")
             self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
             self.send_header("Content-Length", str(file_size))
             self.send_header("X-Saved-Percentage", str(res.get("saved_percentage", 0)))
             self.send_header("X-Saved-Bytes", str(res.get("saved_bytes", 0)))
+            self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
 
             with open(final_file, "rb") as f:

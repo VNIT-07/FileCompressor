@@ -282,46 +282,34 @@ class handler(BaseHTTPRequestHandler):
             fmt = "zip"
             files_to_save = []
 
-            # Try parsing with cgi.FieldStorage or fallback to boundary parser
-            try:
-                environ = {
-                    "REQUEST_METHOD": "POST",
-                    "CONTENT_TYPE": content_type,
-                    "CONTENT_LENGTH": str(content_length),
-                }
-                form = cgi.FieldStorage(
-                    fp=io.BytesIO(raw_body),
-                    headers=self.headers,
-                    environ=environ,
-                    keep_blank_values=True,
-                )
-                fmt = form.getvalue("format", "zip")
-                items = form["files"] if "files" in form else []
-                if not isinstance(items, list):
-                    items = [items]
-                for item in items:
-                    if getattr(item, "filename", None):
-                        fname = os.path.basename(item.filename)
-                        if fname:
-                            files_to_save.append((fname, item.file.read()))
-            except Exception:
-                # Boundary parsing fallback
-                boundary = content_type.split("boundary=")[-1].strip().encode()
-                parts = raw_body.split(b"--" + boundary)
-                for part in parts:
-                    if b"Content-Disposition" in part:
-                        header_data, _, body_data = part.partition(b"\r\n\r\n")
-                        header_str = header_data.decode("utf-8", errors="ignore")
-                        body_data = body_data.rstrip(b"\r\n")
-                        if 'name="format"' in header_str:
-                            fmt = body_data.decode("utf-8", errors="ignore").strip()
-                        elif 'name="files"' in header_str and 'filename="' in header_str:
-                            fn_start = header_str.find('filename="') + 10
-                            fn_end = header_str.find('"', fn_start)
-                            if fn_start != -1 and fn_end != -1:
-                                fname = os.path.basename(header_str[fn_start:fn_end])
-                                if fname:
-                                    files_to_save.append((fname, body_data))
+            # Extract multipart boundary
+            boundary = None
+            for param in content_type.split(";"):
+                param = param.strip()
+                if param.startswith("boundary="):
+                    boundary = param[len("boundary="):].strip("\"'").encode("latin-1")
+                    break
+
+            if not boundary:
+                boundary = content_type.split("boundary=")[-1].strip().strip('"\'').encode()
+
+            parts = raw_body.split(b"--" + boundary)
+            for part in parts:
+                if b"Content-Disposition" in part:
+                    header_data, _, body_data = part.partition(b"\r\n\r\n")
+                    header_str = header_data.decode("utf-8", errors="ignore")
+                    body_data = body_data.rstrip(b"\r\n")
+                    if 'name="format"' in header_str:
+                        parsed_fmt = body_data.decode("utf-8", errors="ignore").strip()
+                        if parsed_fmt:
+                            fmt = parsed_fmt
+                    elif 'name="files"' in header_str and 'filename="' in header_str:
+                        fn_start = header_str.find('filename="') + 10
+                        fn_end = header_str.find('"', fn_start)
+                        if fn_start != -1 and fn_end != -1:
+                            fname = os.path.basename(header_str[fn_start:fn_end])
+                            if fname:
+                                files_to_save.append((fname, body_data))
 
             if not files_to_save:
                 self.send_error_json("No valid files uploaded", 400)
@@ -333,6 +321,7 @@ class handler(BaseHTTPRequestHandler):
             archive_basename = os.path.splitext(files_to_save[0][0])[0] if len(files_to_save) == 1 else "compressed_files"
             for fname, data_bytes in files_to_save:
                 dest_file = os.path.join(upload_dir, fname)
+                os.makedirs(os.path.dirname(dest_file), exist_ok=True)
                 with open(dest_file, "wb") as f_out:
                     f_out.write(data_bytes)
 

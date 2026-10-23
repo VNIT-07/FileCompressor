@@ -664,11 +664,100 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  uploadDropzone.addEventListener('drop', e => {
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      addStagedFiles(files);
+  // Recursive entry reader for dropped folders and files
+  async function traverseEntry(entry, path = '') {
+    if (entry.isFile) {
+      return new Promise((resolve) => {
+        entry.file((file) => {
+          if (path) {
+            try {
+              Object.defineProperty(file, 'webkitRelativePath', {
+                value: `${path}/${file.name}`,
+                configurable: true,
+              });
+            } catch (_) {
+              file._relativePath = `${path}/${file.name}`;
+            }
+          }
+          resolve([file]);
+        }, () => resolve([]));
+      });
+    } else if (entry.isDirectory) {
+      const dirReader = entry.createReader();
+      const currentPath = path ? `${path}/${entry.name}` : entry.name;
+      const readEntriesPromise = () => new Promise((resolve) => {
+        const results = [];
+        function readBatch() {
+          dirReader.readEntries((entries) => {
+            if (!entries || entries.length === 0) {
+              resolve(results);
+            } else {
+              results.push(...entries);
+              readBatch();
+            }
+          }, () => resolve(results));
+        }
+        readBatch();
+      });
+
+      const childEntries = await readEntriesPromise();
+      const nestedFiles = await Promise.all(childEntries.map(child => traverseEntry(child, currentPath)));
+      return nestedFiles.flat();
     }
+    return [];
+  }
+
+  // Drop event with recursive folder support
+  uploadDropzone.addEventListener('drop', async (e) => {
+    const items = e.dataTransfer.items;
+    let droppedFiles = [];
+
+    if (items && items.length > 0 && typeof items[0].webkitGetAsEntry === 'function') {
+      const entryPromises = [];
+      for (let i = 0; i < items.length; i++) {
+        const entry = items[i].webkitGetAsEntry();
+        if (entry) {
+          entryPromises.push(traverseEntry(entry));
+        }
+      }
+      if (entryPromises.length > 0) {
+        const fileBatches = await Promise.all(entryPromises);
+        droppedFiles = fileBatches.flat();
+      }
+    }
+
+    if (droppedFiles.length === 0 && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      droppedFiles = Array.from(e.dataTransfer.files);
+    }
+
+    if (droppedFiles.length > 0) {
+      addStagedFiles(droppedFiles);
+      showToast(`Staged ${droppedFiles.length} item(s)`);
+    }
+  });
+
+  // Clicking anywhere on dropzone (canvas, icon, heading) triggers file selection
+  uploadDropzone.addEventListener('click', (e) => {
+    // If click is on or inside Choose Folder button, let folder picker trigger naturally
+    if (e.target.closest('#upload-folder-input') || e.target.closest('label')?.querySelector('#upload-folder-input')) {
+      return;
+    }
+    // If click is directly on Choose Files label, standard label click triggers input
+    if (e.target.closest('#upload-file-input') || e.target.closest('label')?.querySelector('#upload-file-input')) {
+      return;
+    }
+    // Click was on dropzone background, icon ring, or text
+    uploadFileInput.value = '';
+    uploadFileInput.click();
+  });
+
+  // Reset input values on click so re-selecting identical files still triggers change event
+  uploadFileInput.addEventListener('click', () => {
+    uploadFileInput.value = '';
+  });
+
+  uploadFolderInput.addEventListener('click', () => {
+    uploadFolderInput.value = '';
   });
 
   uploadFileInput.addEventListener('change', () => {
@@ -683,8 +772,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  function addStagedFiles(files) {
-    state.stagedFiles = files;
+  function addStagedFiles(newFiles) {
+    if (!newFiles || newFiles.length === 0) return;
+    const existingKeys = new Set(state.stagedFiles.map(f => (f.webkitRelativePath || f._relativePath || f.name) + '_' + f.size));
+    const toAdd = newFiles.filter(f => !existingKeys.has((f.webkitRelativePath || f._relativePath || f.name) + '_' + f.size));
+    state.stagedFiles = state.stagedFiles.concat(toAdd.length > 0 ? toAdd : newFiles);
     renderStagedFiles();
   }
 
@@ -709,24 +801,39 @@ document.addEventListener('DOMContentLoaded', () => {
     let totalBytes = 0;
     stagedList.innerHTML = '';
 
-    state.stagedFiles.slice(0, 10).forEach(file => {
+    state.stagedFiles.slice(0, 15).forEach((file, idx) => {
       totalBytes += file.size;
       const li = document.createElement('li');
       li.className = 'staged-item';
+      const displayName = file.webkitRelativePath || file._relativePath || file.name;
       li.innerHTML = `
-        <span class="staged-item-name">${escapeHtml(file.name)}</span>
+        <span class="staged-item-name" title="${escapeHtml(displayName)}">${escapeHtml(displayName)}</span>
         <span class="staged-item-size">${formatBytes(file.size)}</span>
+        <button type="button" class="btn-remove-staged" data-idx="${idx}" title="Remove this file" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:2px 6px;font-size:16px;line-height:1;border-radius:4px;">×</button>
       `;
       stagedList.appendChild(li);
     });
 
-    if (state.stagedFiles.length > 10) {
-      const extra = state.stagedFiles.length - 10;
+    for (let i = 15; i < state.stagedFiles.length; i++) {
+      totalBytes += state.stagedFiles[i].size;
+    }
+
+    if (state.stagedFiles.length > 15) {
+      const extra = state.stagedFiles.length - 15;
       const li = document.createElement('li');
       li.className = 'staged-item';
       li.innerHTML = `<span class="staged-item-name" style="color: var(--text-muted);">...and ${extra} more files</span>`;
       stagedList.appendChild(li);
     }
+
+    stagedList.querySelectorAll('.btn-remove-staged').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const removeIdx = parseInt(btn.getAttribute('data-idx'), 10);
+        state.stagedFiles.splice(removeIdx, 1);
+        renderStagedFiles();
+      });
+    });
 
     stagedCountLabel.textContent = `${state.stagedFiles.length} file(s) selected (${formatBytes(totalBytes)})`;
     uploadStatusText.textContent = `Ready to compress ${state.stagedFiles.length} files`;
@@ -751,7 +858,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add files preserving relative directories if folder was uploaded
     for (const file of state.stagedFiles) {
-      const relPath = file.webkitRelativePath || file.name;
+      const relPath = file.webkitRelativePath || file._relativePath || file.name;
       zip.file(relPath, file);
     }
 
@@ -775,8 +882,10 @@ document.addEventListener('DOMContentLoaded', () => {
     a.download = filename;
     document.body.appendChild(a);
     a.click();
-    a.remove();
-    URL.revokeObjectURL(downloadUrl);
+    setTimeout(() => {
+      a.remove();
+      URL.revokeObjectURL(downloadUrl);
+    }, 45000);
 
     const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
     const savedBytes = Math.max(0, totalBytes - blob.size);
@@ -855,8 +964,10 @@ document.addEventListener('DOMContentLoaded', () => {
       a.download = filename;
       document.body.appendChild(a);
       a.click();
-      a.remove();
-      URL.revokeObjectURL(downloadUrl);
+      setTimeout(() => {
+        a.remove();
+        URL.revokeObjectURL(downloadUrl);
+      }, 45000);
 
       showToast(`Downloaded: ${filename}`);
       uploadStatusText.textContent = `Successfully downloaded ${filename}`;

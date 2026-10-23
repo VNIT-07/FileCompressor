@@ -1470,6 +1470,7 @@ a {
   transition: all var(--transition-fast);
   position: relative;
   overflow: hidden;
+  width: 100%;
 }
 
 .drop-surface:hover,
@@ -1477,6 +1478,16 @@ a {
   border-color: var(--primary);
   background: var(--primary-light);
   box-shadow: 0 0 24px var(--primary-glow);
+}
+
+.drop-content-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .drop-icon-ring {
@@ -1488,7 +1499,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
+  margin: 0 auto 16px auto;
   box-shadow: 0 4px 16px var(--primary-glow);
   transition: transform var(--transition-fast);
 }
@@ -1503,40 +1514,26 @@ a {
   letter-spacing: -0.01em;
   color: var(--text-primary);
   margin-bottom: 6px;
+  text-align: center;
 }
 
-.drop-subtitle {
+.drop-sub {
   font-size: 13.5px;
   color: var(--text-muted);
-  max-width: 440px;
-  margin-bottom: 18px;
+  max-width: 480px;
+  margin: 0 auto 18px auto;
+  text-align: center;
 }
 
-.drop-browse-row {
+.drop-triggers-dock {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 12px;
 }
 
-.btn-drop-pick {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-card);
-  color: var(--text-primary);
-  font-weight: 600;
-  font-size: 13px;
+.btn-file-label {
   cursor: pointer;
-  transition: all var(--transition-fast);
-  box-shadow: var(--shadow-xs);
-}
-
-.btn-drop-pick:hover {
-  border-color: var(--primary);
-  color: var(--primary);
 }
 
 /* Staged Files Drawer */
