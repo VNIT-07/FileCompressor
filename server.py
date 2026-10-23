@@ -87,6 +87,17 @@ class CompressorRequestHandler(BaseHTTPRequestHandler):
             self.send_error(404, "File not found")
             return
 
+        # Direct static asset fallback (/style.css, /app.js, favicons)
+        safe_direct = os.path.normpath(os.path.join(STATIC_DIR, path.lstrip("/\\")))
+        if safe_direct.startswith(STATIC_DIR) and os.path.isfile(safe_direct):
+            mime, _ = mimetypes.guess_type(safe_direct)
+            if safe_direct.endswith(".css"):
+                mime = "text/css; charset=utf-8"
+            elif safe_direct.endswith(".js"):
+                mime = "application/javascript; charset=utf-8"
+            self.serve_file(safe_direct, mime or "application/octet-stream")
+            return
+
         # API Endpoints
         if path == "/api/info":
             home = os.path.expanduser("~")

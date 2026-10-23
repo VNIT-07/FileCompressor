@@ -264,6 +264,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (targetId === 'tab-history') {
       fetchHistory();
     }
+
+    const viewTitle = document.getElementById('active-view-title');
+    const tabNames = {
+      'tab-local': 'Local Filesystem Archiver',
+      'tab-upload': 'Drag & Drop Cloud Archiver',
+      'tab-video': 'Reels & Video Media Downloader',
+      'tab-history': 'Activity History & Session Logs'
+    };
+    if (viewTitle && tabNames[targetId]) {
+      viewTitle.textContent = tabNames[targetId];
+    }
+    const sidebar = document.getElementById('app-sidebar');
+    if (sidebar) {
+      sidebar.classList.remove('open');
+    }
   }
 
   tabBtns.forEach(btn => {

@@ -12,120 +12,189 @@
 </head>
 
 <body>
-  <!-- Ambient background depth elements -->
-  <div class="ambient-glow-top" aria-hidden="true"></div>
-  <div class="ambient-glow-bottom" aria-hidden="true"></div>
+  <!-- Master App Layout (Left Sidebar + Main Workstation) -->
+  <div class="app-layout">
 
-  <!-- Master App Window Shell -->
-  <div class="app-window">
-
-    <!-- Window Titlebar & Header -->
-    <header class="window-titlebar">
-      <!-- Top Bar: Traffic lights, Branding, Theme & Status -->
-      <div class="titlebar-top-bar">
-        <!-- Simulated macOS Traffic Lights -->
-        <div class="window-controls" aria-hidden="true">
-          <span class="control-dot close" title="Close"></span>
-          <span class="control-dot minimize" title="Minimize"></span>
-          <span class="control-dot expand" title="Expand"></span>
-        </div>
-
-        <!-- App Brand & Status -->
-        <div class="app-brand">
-          <div class="brand-mark">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+    <!-- ======================================================== -->
+    <!-- LEFT NAVIGATION SIDEBAR                                  -->
+    <!-- ======================================================== -->
+    <aside class="app-sidebar" id="app-sidebar">
+      <!-- Brand & Engine Indicator -->
+      <div class="sidebar-header">
+        <div class="brand-block">
+          <div class="brand-icon-shield" title="FileCompressor Studio Engine">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
               stroke-linecap="round" stroke-linejoin="round">
-              <path
-                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
-              </path>
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
               <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
               <line x1="12" y1="22.08" x2="12" y2="12"></line>
             </svg>
           </div>
-          <div class="brand-text">
-            <div class="brand-title-row">
-              <span class="brand-name">FileCompressor Studio</span>
-              <span class="brand-pill">Pro</span>
+          <div class="brand-info">
+            <div class="brand-title-wrap">
+              <span class="brand-title">FileCompressor</span>
+              <span class="brand-badge-pro">PRO</span>
             </div>
-            <span class="brand-meta" id="platform-badge">
+            <div class="brand-engine-status" id="platform-badge">
               <span class="status-indicator"></span>
-              Native Engine Active
-            </span>
+              <span>Native Engine Active</span>
+            </div>
           </div>
         </div>
+        <button type="button" class="sidebar-close-btn" id="btn-sidebar-close" aria-label="Close navigation sidebar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
 
-        <!-- Titlebar Right / Quick Tools -->
-        <div class="titlebar-actions">
-          <button type="button" class="btn-theme-toggle" id="btn-theme-toggle" title="Toggle Light / Dark theme"
-            aria-label="Toggle Theme">
-            <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2">
-              <circle cx="12" cy="12" r="5"></circle>
-              <line x1="12" y1="1" x2="12" y2="3"></line>
-              <line x1="12" y1="21" x2="12" y2="23"></line>
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-              <line x1="1" y1="12" x2="3" y2="12"></line>
-              <line x1="21" y1="12" x2="23" y2="12"></line>
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-            </svg>
-            <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-            </svg>
-            <span class="theme-label">Theme</span>
+      <!-- Navigation Links -->
+      <div class="sidebar-nav-container">
+        <div class="nav-section-label">WORKSPACES</div>
+        <nav class="nav-tabs" role="tablist" aria-label="Workflow Navigation">
+          <!-- Tab 1 -->
+          <button class="tab-btn active" id="tab-local-btn" data-tab="tab-local" role="tab" aria-selected="true">
+            <div class="tab-btn-content">
+              <svg class="tab-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span id="tab-local-label" class="tab-label">Local Filesystem</span>
+            </div>
+            <kbd class="tab-kbd" id="tab-kbd-1">⌘1</kbd>
           </button>
+
+          <!-- Tab 2 -->
+          <button class="tab-btn" id="tab-upload-btn" data-tab="tab-upload" role="tab" aria-selected="false">
+            <div class="tab-btn-content">
+              <svg class="tab-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <span class="tab-label">Drag &amp; Drop</span>
+            </div>
+            <kbd class="tab-kbd" id="tab-kbd-2">⌘2</kbd>
+          </button>
+
+          <!-- Tab 3 -->
+          <button class="tab-btn" id="tab-video-btn" data-tab="tab-video" role="tab" aria-selected="false">
+            <div class="tab-btn-content">
+              <svg class="tab-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+              </svg>
+              <span class="tab-label">Reels &amp; Video</span>
+              <span class="tab-new-badge">Reel</span>
+            </div>
+            <kbd class="tab-kbd" id="tab-kbd-3">⌘3</kbd>
+          </button>
+
+          <!-- Tab 4 -->
+          <button class="tab-btn" id="tab-history-btn" data-tab="tab-history" role="tab" aria-selected="false">
+            <div class="tab-btn-content">
+              <svg class="tab-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span class="tab-label">Activity History</span>
+            </div>
+            <div class="tab-meta-end">
+              <span class="badge-counter" id="history-count">0</span>
+              <kbd class="tab-kbd" id="tab-kbd-4">⌘4</kbd>
+            </div>
+          </button>
+        </nav>
+
+        <!-- Sidebar Engine Metrics Card -->
+        <div class="sidebar-system-card">
+          <div class="sys-card-header">
+            <span class="sys-card-title">ENGINE METRICS</span>
+            <span class="sys-card-pulse"></span>
+          </div>
+          <div class="sys-card-row">
+            <span class="sys-label">Speed</span>
+            <span class="sys-val text-blue">Multi-Threaded</span>
+          </div>
+          <div class="sys-card-row">
+            <span class="sys-label">Target Limit</span>
+            <span class="sys-val">25MB Discord Guard</span>
+          </div>
         </div>
       </div>
 
-      <!-- Segmented Navigation Shelf -->
-      <div class="titlebar-nav-shelf">
-        <nav class="nav-tabs" role="tablist" aria-label="Workflow Navigation">
-          <button class="tab-btn active" id="tab-local-btn" data-tab="tab-local" role="tab" aria-selected="true">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-            </svg>
-            <span id="tab-local-label">Local Filesystem</span>
-            <kbd class="tab-kbd" id="tab-kbd-1">⌘1</kbd>
-          </button>
-          <button class="tab-btn" id="tab-upload-btn" data-tab="tab-upload" role="tab" aria-selected="false">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="17 8 12 3 7 8"></polyline>
-              <line x1="12" y1="3" x2="12" y2="15"></line>
-            </svg>
-            <span>Drag &amp; Drop</span>
-            <kbd class="tab-kbd" id="tab-kbd-2">⌘2</kbd>
-          </button>
-          <button class="tab-btn" id="tab-video-btn" data-tab="tab-video" role="tab" aria-selected="false">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="23 7 16 12 23 17 23 7"></polygon>
-              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-            </svg>
-            <span>Reels &amp; Video</span>
-            <span class="tab-new-badge">Reel</span>
-            <kbd class="tab-kbd" id="tab-kbd-3">⌘3</kbd>
-          </button>
-          <button class="tab-btn" id="tab-history-btn" data-tab="tab-history" role="tab" aria-selected="false">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-            <span>Activity History</span>
-            <span class="badge-counter" id="history-count">0</span>
-            <kbd class="tab-kbd" id="tab-kbd-4">⌘4</kbd>
-          </button>
-        </nav>
+      <!-- Sidebar Footer (Theme Switcher + Version) -->
+      <div class="sidebar-footer">
+        <button type="button" class="btn-theme-toggle" id="btn-theme-toggle" title="Toggle Light / Dark theme"
+          aria-label="Toggle Theme">
+          <div class="theme-toggle-inner">
+            <div class="theme-icon-slot">
+              <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </div>
+            <span class="theme-label-dynamic">Appearance</span>
+          </div>
+          <div class="theme-toggle-switch">
+            <span class="toggle-slider"></span>
+          </div>
+        </button>
+        <div class="sidebar-engine-foot">
+          <span class="foot-dot"></span>
+          <span class="foot-version">Apple Pro Slate &amp; Electric Blue</span>
+        </div>
       </div>
-    </header>
+    </aside>
 
-    <!-- Main Workspace Body -->
-    <div class="window-body">
+    <!-- ======================================================== -->
+    <!-- RIGHT MAIN WORKSPACE VIEWPORT                            -->
+    <!-- ======================================================== -->
+    <div class="app-main">
+      <!-- Main Topbar Header -->
+      <header class="main-topbar">
+        <div class="topbar-left">
+          <button type="button" class="btn-sidebar-toggle" id="btn-sidebar-toggle" aria-label="Toggle Navigation Sidebar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <div class="breadcrumb-trail">
+            <span class="crumb-root">Studio</span>
+            <span class="crumb-separator">/</span>
+            <span class="crumb-current" id="active-view-title">Local Filesystem Archiver</span>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="topbar-pill-status">
+            <span class="live-dot-pulse"></span>
+            <span class="topbar-status-text" id="topbar-status-summary">Engine Ready</span>
+          </div>
+          <div class="topbar-kbd-chip">
+            <span id="statusbar-kbd-help">⌘1–⌘4 Switch Views</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Scrollable Workspace Canvas -->
+      <div class="main-content-scroll">
+        <div class="content-container">
 
       <!-- ======================================================== -->
       <!-- TAB 1: LOCAL FILESYSTEM ARCHIVER                         -->
@@ -1153,21 +1222,23 @@
         </div>
       </main>
 
-    </div><!-- /.window-body -->
+        </div><!-- /.content-container -->
+      </div><!-- /.main-content-scroll -->
 
-    <!-- Status Bar Footer -->
-    <footer class="window-statusbar">
-      <div class="statusbar-left">
-        <span class="status-indicator"></span>
-        <span class="statusbar-text">Daemon Listening on Localhost • Level 9 Ultra Engine</span>
-      </div>
-      <div class="statusbar-right">
-        <span class="statusbar-tag">Under 25MB Protection Active</span>
-        <span class="statusbar-kbd" id="statusbar-kbd-help">⌘1–⌘4 Switch Views</span>
-      </div>
-    </footer>
+      <!-- Status Bar Footer -->
+      <footer class="window-statusbar">
+        <div class="statusbar-left">
+          <span class="status-indicator"></span>
+          <span class="statusbar-text">Daemon Listening on Localhost • Apple Pro Engine</span>
+        </div>
+        <div class="statusbar-right">
+          <span class="statusbar-tag">Under 25MB Protection Active</span>
+        </div>
+      </footer>
 
-  </div><!-- /.app-window -->
+    </div><!-- /.app-main -->
+
+  </div><!-- /.app-layout -->
 
   <!-- Toast Notification -->
   <div class="toast" id="app-toast" style="display: none;">
@@ -1179,10 +1250,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="/static/app.js"></script>
   <script>
-    // Theme toggle initial setup
+    // Theme toggle initial setup & Responsive Sidebar
     (function () {
       const savedTheme = localStorage.getItem('fc_theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
       document.documentElement.setAttribute('data-theme', savedTheme);
+      
       const themeBtn = document.getElementById('btn-theme-toggle');
       if (themeBtn) {
         themeBtn.addEventListener('click', function () {
@@ -1192,6 +1264,39 @@
           localStorage.setItem('fc_theme', next);
         });
       }
+
+      // Mobile / Compact Sidebar Toggle
+      const sidebarToggleBtn = document.getElementById('btn-sidebar-toggle');
+      const sidebarCloseBtn = document.getElementById('btn-sidebar-close');
+      const sidebar = document.getElementById('app-sidebar');
+      if (sidebarToggleBtn && sidebar) {
+        sidebarToggleBtn.addEventListener('click', function () {
+          sidebar.classList.toggle('open');
+        });
+      }
+      if (sidebarCloseBtn && sidebar) {
+        sidebarCloseBtn.addEventListener('click', function () {
+          sidebar.classList.remove('open');
+        });
+      }
+
+      // Sync active view breadcrumb with tabs
+      const viewTitle = document.getElementById('active-view-title');
+      const tabNames = {
+        'tab-local': 'Local Filesystem Archiver',
+        'tab-upload': 'Drag & Drop Cloud Archiver',
+        'tab-video': 'Reels & Video Media Downloader',
+        'tab-history': 'Activity History & Session Logs'
+      };
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+          const tabId = btn.getAttribute('data-tab');
+          if (viewTitle && tabNames[tabId]) {
+            viewTitle.textContent = tabNames[tabId];
+          }
+          if (sidebar) sidebar.classList.remove('open');
+        });
+      });
     })();
   </script>
 </body>
